@@ -5,6 +5,7 @@ import (
 	"github.com/nedpals/supabase-go"
 	"gobot/config"
 	"gobot/freegames/reddit"
+	"os"
 )
 
 type Post struct {
@@ -14,7 +15,7 @@ type Post struct {
 	Dummy bool   `json:"dummy"`
 }
 
-var Client = supabase.CreateClient(config.SupabaseUrl, config.SupabaseKey)
+var Client = supabase.CreateClient(os.Getenv(config.SupabaseUrl), os.Getenv(config.SupabaseKey))
 
 /*
 GetAllPost

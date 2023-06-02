@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-co-op/gocron"
 	"time"
+	_ "time/tzdata"
 )
 
 var Location *time.Location

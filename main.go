@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"gobot/freegames"
 	"gobot/freegames/reddit"
 	"gobot/freegames/supabase"
@@ -36,6 +37,7 @@ func merge() []reddit.Post {
 }
 
 func main() {
+	fmt.Println("Gobot started...")
 	freegames.Every11am(func() {
 		var merged = merge()
 		for _, post := range merged {
