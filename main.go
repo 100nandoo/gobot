@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gobot/freegames"
 	"gobot/freegames/reddit"
 	"gobot/freegames/supabase"
 	"gobot/freegames/telegram"
@@ -35,9 +36,11 @@ func merge() []reddit.Post {
 }
 
 func main() {
-	var merged = merge()
-	for _, post := range merged {
-		telegram.SendPost(post)
-		supabase.Insert(post)
-	}
+	freegames.Every11am(func() {
+		var merged = merge()
+		for _, post := range merged {
+			telegram.SendPost(post)
+			supabase.Insert(post)
+		}
+	})
 }

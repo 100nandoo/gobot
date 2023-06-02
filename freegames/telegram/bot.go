@@ -8,6 +8,11 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
+/*
+SendPost
+
+Send reddit post url to config.TelegramFreeGames channel
+*/
 func SendPost(post reddit.Post) {
 	pref := tele.Settings{
 		Token:  config.TelegramAaron,
@@ -15,7 +20,7 @@ func SendPost(post reddit.Post) {
 	}
 
 	b, _ := tele.NewBot(pref)
-	_, err := b.Send(tele.ChatID(config.TelegramFreeGamesDebug), post.URL)
+	_, err := b.Send(tele.ChatID(config.TelegramFreeGames), post.URL)
 	if err != nil {
 		println("Error from send post", err)
 		return
