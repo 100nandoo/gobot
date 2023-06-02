@@ -25,12 +25,10 @@ func SendPost(post reddit.Post) {
 
 	num, chatIdErr := strconv.ParseInt(os.Getenv(config.TelegramFreeGames), 10, 64)
 	if chatIdErr != nil {
+		println("Error from send post chatIdErr", chatIdErr)
 		return
 	}
 	_, err := b.Send(tele.ChatID(num), post.URL)
-	if err != nil {
-		return
-	}
 	if err != nil {
 		println("Error from send post", err)
 		return

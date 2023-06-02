@@ -42,6 +42,7 @@ func Insert(post reddit.Post) {
 	err := Client.DB.From("Games").Insert(Post{
 		URL:   post.URL,
 		Title: post.Title,
+		Sent:  true,
 	}).Execute(&results)
 	if err != nil {
 		fmt.Println("Error calling Insert", err)
