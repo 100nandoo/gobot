@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"fmt"
@@ -12,11 +12,13 @@ var (
 	SupabaseUrl string
 )
 
-func Init() {
+// Read config.yml content and put the content into respective global variables
+func init() {
 	viper.SetConfigFile("config.yml")
 	err := viper.ReadInConfig()
 	SupabaseUrl = viper.GetString(supabaseUrlKey)
 	SupabaseKey = viper.GetString(supabaseKeyKey)
+	//fmt.Println(SupabaseUrl, SupabaseKey)
 	if err != nil {
 		fmt.Println("Error calling init in config.go", err)
 		return

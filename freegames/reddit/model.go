@@ -1,6 +1,6 @@
-package main
+package reddit
 
-type RedditResponse struct {
+type Response struct {
 	Data struct {
 		Children []struct {
 			Post `json:"data"`
