@@ -48,7 +48,7 @@ flowchart LR
 ### Environment Variables
 | Name                              | Desc                   |
 |-----------------------------------|------------------------|
-| telegram_bot_aaron                | Telegram bot API Token |
+| telegram_bot                      | Telegram bot API Token |
 | telegram_channel_free_games       | Channel ID             |
 | telegram_channel_free_games_debug | Debug Channel ID       |
 | supabase_url                      | Supabase URL           |

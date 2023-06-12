@@ -16,7 +16,7 @@ Send reddit post url to config.TelegramFreeGames channel
 */
 func SendPost(post Post) {
 	pref := tele.Settings{
-		Token:  os.Getenv(config.TelegramAaron),
+		Token:  os.Getenv(config.TelegramBot),
 		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
 	}
 
