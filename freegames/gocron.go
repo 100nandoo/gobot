@@ -8,6 +8,7 @@ import (
 )
 
 var Location *time.Location
+var scheduler *gocron.Scheduler
 
 // Set location to Singapore
 func init() {
@@ -17,22 +18,23 @@ func init() {
 		fmt.Println("errJob load location", err)
 		return
 	}
+	scheduler = gocron.NewScheduler(Location)
 }
 
 /*
-Every11am
+EverydayAtThisHour
 
-Start go cron job that is scheduled every day at 11.00 am
+Start go cron job that is scheduled every day at specific hour define on the parameter
 */
-func Every11am(operation func()) {
-	s := gocron.NewScheduler(Location)
-
-	_, errJob := s.Every(1).Day().At("11:00").Do(operation)
+func EverydayAtThisHour(operation func(), hour string) {
+	_, errJob := scheduler.Every(1).Day().At(hour).Do(operation)
 
 	if errJob != nil {
 		fmt.Println("Error doing gocron job", errJob)
 		return
 	}
+}
 
-	s.StartBlocking()
+func StartBlocking() {
+	scheduler.StartBlocking()
 }
