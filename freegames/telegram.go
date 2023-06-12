@@ -1,8 +1,7 @@
-package telegram
+package freegames
 
 import (
 	"gobot/config"
-	"gobot/freegames/reddit"
 	"os"
 	"strconv"
 	"time"
@@ -15,7 +14,7 @@ SendPost
 
 Send reddit post url to config.TelegramFreeGames channel
 */
-func SendPost(post reddit.Post) {
+func SendPost(post Post) {
 	pref := tele.Settings{
 		Token:  os.Getenv(config.TelegramAaron),
 		Poller: &tele.LongPoller{Timeout: 10 * time.Second},

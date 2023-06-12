@@ -1,14 +1,13 @@
-package supabase
+package freegames
 
 import (
 	"fmt"
 	"github.com/nedpals/supabase-go"
 	"gobot/config"
-	"gobot/freegames/reddit"
 	"os"
 )
 
-type Post struct {
+type SupabasePost struct {
 	URL   string `json:"url"`
 	Title string `json:"title"`
 	Sent  bool   `json:"sent"`
@@ -22,8 +21,8 @@ GetAllPost
 
 Get All rows from Games Database, return arrays of SupabasePost
 */
-func GetAllPost() []Post {
-	var results []Post
+func GetAllPost() []SupabasePost {
+	var results []SupabasePost
 	err := Client.DB.From("Games").Select("*").Execute(&results)
 	if err != nil {
 		fmt.Println("Error calling GetAllPost", err)
@@ -37,9 +36,9 @@ Insert
 
 Insert a row into Games Database
 */
-func Insert(post reddit.Post) {
-	var results []Post
-	err := Client.DB.From("Games").Insert(Post{
+func Insert(post Post) {
+	var results []SupabasePost
+	err := Client.DB.From("Games").Insert(SupabasePost{
 		URL:   post.URL,
 		Title: post.Title,
 		Sent:  true,

@@ -3,9 +3,6 @@ package main
 import (
 	"fmt"
 	"gobot/freegames"
-	"gobot/freegames/reddit"
-	"gobot/freegames/supabase"
-	"gobot/freegames/telegram"
 )
 
 /*
@@ -17,10 +14,10 @@ Merge 2 things:
 
 It will keep all the posts from API response that is not inside supabase
 */
-func merge() []reddit.Post {
-	var results []reddit.Post
-	posts := reddit.GetPostsAndFilter()
-	supabasePosts := supabase.GetAllPost()
+func merge() []freegames.Post {
+	var results []freegames.Post
+	posts := freegames.GetPostsAndFilter()
+	supabasePosts := freegames.GetAllPost()
 	for i := 0; i < len(posts); i++ {
 		found := false
 		for _, value := range supabasePosts {
@@ -41,8 +38,8 @@ func main() {
 	freegames.Every11am(func() {
 		var merged = merge()
 		for _, post := range merged {
-			telegram.SendPost(post)
-			supabase.Insert(post)
+			freegames.SendPost(post)
+			freegames.Insert(post)
 		}
 	})
 }
