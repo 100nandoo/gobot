@@ -1,6 +1,6 @@
 package config
 
-const SupabaseUrl, SupabaseKey string = "supabase_url", "supabase_key"
-const TelegramBot string = "telegram_bot"
-const TelegramFreeGamesDebug string = "telegram_channel_free_games_debug"
-const TelegramFreeGames string = "telegram_channel_free_games"
+const SupabaseUrl, SupabaseKey string = "SUPABASE_URL", "SUPABASE_KEY"
+const TelegramBot string = "TELEGRAM_BOT"
+const TelegramFreeGamesDebug string = "TELEGRAM_CHANNEL_FREE_GAMES_DEBUG"
+const TelegramFreeGames string = "TELEGRAM_CHANNEL_FREE_GAMES"
