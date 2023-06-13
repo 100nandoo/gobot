@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	fmt.Println("Gobot v1.1 started...")
-	go app.Scouting()
-	go app.Cleaning()
+	fmt.Println("Gobot v1.2 started...")
+	app.Scouting()
+	app.Cleaning()
 	freegames.StartBlocking()
 }

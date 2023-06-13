@@ -30,8 +30,8 @@ Run every day at 12:00
 2. Delete it
 */
 func Cleaning() {
-	fmt.Println("Cleaning")
 	freegames.EverydayAtThisHour(func() {
+		fmt.Println("Cleaning")
 		supabasePosts := freegames.GetAllPost()
 		oldPosts := findOldSupabasePosts(supabasePosts)
 		for _, post := range oldPosts {

@@ -38,8 +38,8 @@ Scouting
 Run every day at 11:00
 */
 func Scouting() {
-	fmt.Println("Scouting")
 	freegames.EverydayAtThisHour(func() {
+		fmt.Println("Scouting")
 		var merged = merge()
 		for _, post := range merged {
 			freegames.SendPost(post)
