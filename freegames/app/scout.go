@@ -40,7 +40,7 @@ Run every day at 11:00
 */
 func Scouting() {
 	pkg.EverydayAtThisHour(func() {
-		fmt.Println("Scouting")
+		fmt.Println("Scouting free games")
 		var merged = merge()
 		for _, post := range merged {
 			freegames.SendPost(post)

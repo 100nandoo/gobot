@@ -2,13 +2,18 @@ package main
 
 import (
 	"fmt"
-	"gobot/freegames"
 	"gobot/freegames/app"
+	"gobot/pkg"
+	"gobot/remoteok"
 )
 
 func main() {
-	fmt.Println("Gobot v1.2 started...")
+	fmt.Println("Gobot v1.3 started...")
 	app.Scouting()
 	app.Cleaning()
-	freegames.StartBlocking()
+
+	remoteok.Scouting()
+	remoteok.Cleaning()
+
+	pkg.StartBlocking()
 }

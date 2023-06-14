@@ -3,6 +3,7 @@ package remoteok
 import (
 	"encoding/json"
 	"fmt"
+	"gobot/pkg"
 	"net/http"
 	"strings"
 	"time"
@@ -42,16 +43,20 @@ func getJobs() (*[]Job, error) {
 /*
 Filter function for remote Ok API.
 Keep only job that fulfill these conditions:
-
+- Job posting not older than 7 days ago
 - Position contains one of the position parameter
 */
-func filter(job *[]Job, position ...string) *[]Job {
+func filter(jobs *[]Job, position ...string) *[]Job {
 	var result []Job
-	for _, s := range *job {
-		for _, p := range position {
-			if strings.Contains(strings.ToLower(s.Position), p) {
-				result = append(result, s)
-				break
+	sevenDaysAgo := pkg.DaysUnix(-7)
+
+	for _, job := range *jobs {
+		if int64(job.Epoch) > sevenDaysAgo {
+			for _, p := range position {
+				if strings.Contains(strings.ToLower(job.Position), p) {
+					result = append(result, job)
+					break
+				}
 			}
 		}
 	}
@@ -69,6 +74,6 @@ func getJobsAndFilter() []Job {
 		fmt.Println("Error calling GetJobs", err)
 
 	}
-	result = *filter(job, "backend")
+	result = *filter(job, "mobile", "android")
 	return result
 }

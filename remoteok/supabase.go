@@ -63,7 +63,7 @@ Delete a row in Games Database
 */
 func Delete(post SupabaseJob) {
 	var results []SupabaseJob
-	err := pkg.SupabaseClient.DB.From(dbName).Delete().Eq("ID", post.ID).Execute(&results)
+	err := pkg.SupabaseClient.DB.From(dbName).Delete().Eq("id", post.ID).Execute(&results)
 	if err != nil {
 		fmt.Println("Error calling Delete", err)
 		return

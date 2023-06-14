@@ -52,13 +52,14 @@ flowchart LR
 
 7. `Save to Supabase` ➡️ Save Post(s) to Supabase Db
 
+**note:** _Post in the db will be cleanup(old Post) daily to reduce db size_
+
 
 ## 🛠️ Setup
 ### Environment Variables
 | Name                              | Desc                   |
 |-----------------------------------|------------------------|
-| telegram_bot                      | Telegram bot API Token |
-| telegram_channel_free_games       | Channel ID             |
-| telegram_channel_free_games_debug | Debug Channel ID       |
-| supabase_url                      | Supabase URL           |
-| supabase_key                      | Supabase Key           |
+| TELEGRAM_BOT                      | Telegram bot API Token |
+| TELEGRAM_CHANNEL_FREE_GAMES       | Channel ID             |
+| SUPABASE_URL                      | Supabase URL           |
+| SUPABASE_KEY                      | Supabase Key           |

@@ -39,7 +39,7 @@ Run every day at 10:00
 */
 func Scouting() {
 	pkg.EverydayAtThisHour(func() {
-		fmt.Println("Scouting")
+		fmt.Println("Scouting remoteOk")
 		var merged = merge()
 		for _, job := range merged {
 			SendJob(job)

@@ -31,7 +31,7 @@ Run every day at 12:00
 */
 func Cleaning() {
 	pkg.EverydayAtThisHour(func() {
-		fmt.Println("Cleaning")
+		fmt.Println("Cleaning free games")
 		supabasePosts := freegames.GetAllPost()
 		oldPosts := findOldSupabasePosts(supabasePosts)
 		for _, post := range oldPosts {
