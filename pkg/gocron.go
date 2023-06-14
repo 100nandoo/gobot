@@ -1,4 +1,4 @@
-package freegames
+package pkg
 
 import (
 	"fmt"

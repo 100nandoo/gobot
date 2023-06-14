@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"gobot/freegames"
+	"gobot/pkg"
 )
 
 /*
@@ -38,7 +39,7 @@ Scouting
 Run every day at 11:00
 */
 func Scouting() {
-	freegames.EverydayAtThisHour(func() {
+	pkg.EverydayAtThisHour(func() {
 		fmt.Println("Scouting")
 		var merged = merge()
 		for _, post := range merged {
