@@ -76,3 +76,16 @@ Cleaner run everday at 11.30 AM
 | TELEGRAM_CHANNEL_FREE_GAMES       | Channel ID             |
 | SUPABASE_URL                      | Supabase URL           |
 | SUPABASE_KEY                      | Supabase Key           |
+
+### Supabase Table Definition
+```sql
+create table
+  public.Games (
+    url text not null,
+    title text null,
+    sent boolean null default true,
+    found_at date null default now(),
+    dummy boolean not null default false,
+    constraint Games_pkey primary key (url)
+  ) tablespace pg_default;
+```

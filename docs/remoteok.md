@@ -44,3 +44,19 @@ Cleaner run everday at 10.30 AM
 | TELEGRAM_CHANNEL_REMOTE_OK  | Telegram Channel id    |
 | SUPABASE_URL                | Supabase URL           |
 | SUPABASE_KEY                | Supabase Key           |
+
+### Supabase Table Definition
+```sql
+create table
+  public.RemoteOk (
+    id text not null,
+    epoch bigint not null,
+    slug text not null default ''::text,
+    company text not null default ''::text,
+    position text not null default ''::text,
+    description text not null default ''::text,
+    location text not null default ''::text,
+    url text not null default ''::text,
+    constraint RemoteOk_pkey primary key (id)
+  ) tablespace pg_default;
+```
