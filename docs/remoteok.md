@@ -31,7 +31,10 @@ flowchart LR
 5. `Save to Supabase` ➡️ Save Job(s) to Supabase Db
 
 **note:** _Job in the db will be cleanup(old job post) daily to reduce db size_
-
+```
+Worker run everyday at 10.00 AM
+Cleaner run everday at 10.30 AM
+```
 
 ## 🛠️ Setup
 ### Environment Variables

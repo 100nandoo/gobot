@@ -11,23 +11,33 @@ The bot then will send the game URL into a telegram channel.
 ## ❔ How it Works
 ```mermaid
 flowchart LR
-    A(FreeGamesOnSteam)
-    B(Filter)
-    C(FreeGameFindings)
-    D(Filter)
-    E[(Supabase)]
-    F{{Combine}}
-    G{{Reddit - Supabase}}
-    H(Send to Telegram)
-    I(Save to Supabase)
-    A --> B
-    C --> D
-    B --> F
-    D --> F
-    F --> G
-    E --> G
-    G --> H
-    G --> I
+    subgraph Cleaner 
+        J
+    end
+    
+    subgraph Worker
+        direction LR
+       A --> B
+       C --> D
+       B --> F
+       D --> F
+       F --> G
+       E --> G
+       G --> H
+       G --> I
+    end
+
+   A(FreeGamesOnSteam)
+   B(Filter)
+   C(FreeGameFindings)
+   D(Filter)
+   E[(Supabase)]
+   F{{Combine}}
+   G{{Reddit - Supabase}}
+   H(Send to Telegram)
+   I(Save to Supabase)
+   J[[Cleanup]]
+    
 ```
 
 1. `FreeGamesOnSteam` ➡️ Pull top reddit post from FreeGamesOnSteam then applied filter criteria:
@@ -53,7 +63,10 @@ flowchart LR
 7. `Save to Supabase` ➡️ Save Post(s) to Supabase Db
 
 **note:** _Post in the db will be cleanup(old Post) daily to reduce db size_
-
+```
+Worker run everyday at 11.00 AM
+Cleaner run everday at 11.30 AM
+```
 
 ## 🛠️ Setup
 ### Environment Variables
