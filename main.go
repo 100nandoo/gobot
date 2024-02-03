@@ -5,18 +5,15 @@ import (
 	"gobot/freegames/app"
 	"gobot/pkg"
 	"gobot/remoteok"
-	"gobot/rss"
 )
 
 func main() {
-	fmt.Println("Gobot v1.4 started...")
+	fmt.Println("Gobot v1.5 started...")
 	app.Scouting()
 	app.Cleaning()
 
 	remoteok.Scouting()
 	remoteok.Cleaning()
-
-	rss.Scouting()
 
 	pkg.StartBlocking()
 }
