@@ -5,6 +5,7 @@ import (
 	"gobot/freegames/app"
 	"gobot/pkg"
 	"gobot/remoteok"
+	"gobot/summarizer"
 )
 
 func main() {
@@ -15,5 +16,6 @@ func main() {
 	remoteok.Scouting()
 	remoteok.Cleaning()
 
+	go summarizer.Run()
 	pkg.StartBlocking()
 }
