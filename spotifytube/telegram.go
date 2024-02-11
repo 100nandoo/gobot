@@ -12,12 +12,8 @@ import (
 
 const (
 	regexSpotifyUrl = `^(https?\:\/\/)?((www|open|play)\.spotify\.com)\/.+$`
-)
-
-func Run() {
-	spotifyClient := initClient()
-
-	startMessage := `Hello this is SpotifyTubeBot
+	info            = "SpotifyTube made with ❤️ by @crossix"
+	startMessage    = `Hello this is SpotifyTubeBot
 *Features:*
 - Convert youtube music url to spotify url and vice versa
 - Search song using title/artist
@@ -31,7 +27,10 @@ II. Type @spotifytubebot follow by url in chat box on any conversation
 
 
 SpotifyTubeBot made with ❤️ by @crossix`
-	info := "SpotifyTube made with ❤️ by @crossix"
+)
+
+func Run() {
+	spotifyClient := initClient()
 
 	pref := tele.Settings{
 		Token:  os.Getenv("SPOTIFYTUBE_BOT"),

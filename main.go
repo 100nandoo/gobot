@@ -1,17 +1,21 @@
 package main
 
 import (
-	"gobot/spotifytube"
+	"fmt"
+	"gobot/freegames/app"
+	"gobot/pkg"
+	"gobot/remoteok"
+	"gobot/summarizer"
 )
 
 func main() {
-	// fmt.Println("Gobot v1.5 started...")
-	// app.Scouting()
-	// app.Cleaning()
+	fmt.Println("Gobot v1.5 started...")
+	app.Scouting()
+	app.Cleaning()
 
-	// remoteok.Scouting()
-	// remoteok.Cleaning()
+	remoteok.Scouting()
+	remoteok.Cleaning()
 
-	// pkg.StartBlocking()
-	spotifytube.Run()
+	go summarizer.Run()
+	pkg.StartBlocking()
 }
