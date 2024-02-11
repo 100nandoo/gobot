@@ -29,7 +29,6 @@ Captain Kidd bot made with ❤️ by @crossix`
 )
 
 func Run() {
-	println("Run Summarizer")
 	pref := tele.Settings{
 		Token:  os.Getenv(config.CaptainKiddBot),
 		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
@@ -62,7 +61,6 @@ func Run() {
 	b.Handle(telebot.OnText, func(c tele.Context) error {
 		pattern := regexp.MustCompile(regexUrl)
 		if pattern.MatchString(c.Text()) {
-			fmt.Println("url pattern")
 			smmryResponse, errResponse := SummarizeURL(c.Text())
 			if errResponse != nil {
 				fmt.Println("Error:", errResponse.SmAPIMessage)
@@ -76,7 +74,6 @@ func Run() {
 			wordCount := len(words)
 
 			if wordCount > 100 {
-				fmt.Println("text pattern")
 				smmryResponse, errResponse := SummarizeText(c.Text())
 				if errResponse != nil {
 					fmt.Println("Error:", errResponse.SmAPIMessage)
@@ -86,6 +83,7 @@ func Run() {
 					ParseMode: telebot.ModeMarkdown,
 				})
 			}
+			
 			return c.Send("Other regex")
 		}
 	})
