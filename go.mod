@@ -1,6 +1,6 @@
 module gobot
 
-go 1.20
+go 1.22.5
 
 require (
 	github.com/go-co-op/gocron v1.37.0
