@@ -59,7 +59,7 @@ func Insert(job Job) {
 /*
 Delete
 
-Delete a row in Games Database
+Delete a row in RemoteOk Database
 */
 func Delete(post SupabaseJob) {
 	var results []SupabaseJob
