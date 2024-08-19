@@ -49,6 +49,15 @@ func EverySaturdayDayAtThisHour(operation func(), hour string) {
 	}
 }
 
+// EveryHourOnSaturday starts a cron job that runs every hour on Saturday.
+func EveryHourOnSaturday(operation func()) {
+	_, errJob := scheduler.Every(1).Saturday().Hour().Do(operation)
+	if errJob != nil {
+		fmt.Println("Error doing EveryHourOnSaturday", errJob)
+		return
+	}
+}
+
 func StartBlocking() {
 	scheduler.StartBlocking()
 }

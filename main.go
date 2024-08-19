@@ -6,6 +6,7 @@ import (
 	"gobot/pkg"
 	"gobot/remoteok"
 	"gobot/summarizer"
+	"gobot/warta"
 )
 
 func main() {
@@ -17,5 +18,7 @@ func main() {
 	remoteok.Cleaning()
 
 	go summarizer.Run()
+
+	warta.Scouting()
 	pkg.StartBlocking()
 }
