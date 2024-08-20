@@ -34,7 +34,7 @@ func Insert(warta SupabaseWarta) (*SupabaseWarta, error) {
 	var result SupabaseWarta
 	err := pkg.SupabaseClient.DB.From(dbName).Insert(warta).Execute(&result)
 	if err != nil {
-		return nil, fmt.Errorf("Error calling Insert: %w", err)
+		return nil, fmt.Errorf("error calling Insert: %w", err)
 	}
 	return &result, nil
 }
@@ -44,7 +44,7 @@ func Update(updatedWarta SupabaseWarta) (*SupabaseWarta, error) {
 	var result SupabaseWarta
 	err := pkg.SupabaseClient.DB.From(dbName).Update(updatedWarta).Eq("bulletin_date", updatedWarta.BulletinDate).Execute(&result)
 	if err != nil {
-		return nil, fmt.Errorf("Error calling Update: %w", err)
+		return nil, fmt.Errorf("error calling Update: %w", err)
 	}
 	return &result, nil
 }
@@ -54,7 +54,7 @@ func Delete(id string) error {
 	var result []SupabaseWarta
 	err := pkg.SupabaseClient.DB.From(dbName).Delete().Eq("id", id).Execute(&result)
 	if err != nil {
-		return fmt.Errorf("Error calling Delete: %w", err)
+		return fmt.Errorf("error calling Delete: %w", err)
 	}
 	return nil
 }

@@ -2,9 +2,10 @@ package pkg
 
 import (
 	"fmt"
-	"github.com/go-co-op/gocron"
 	"time"
 	_ "time/tzdata"
+
+	"github.com/go-co-op/gocron"
 )
 
 var Location *time.Location
@@ -49,13 +50,16 @@ func EverySaturdayDayAtThisHour(operation func(), hour string) {
 	}
 }
 
-// EveryHourOnSaturday starts a cron job that runs every hour on Saturday.
-func EveryHourOnSaturday(operation func()) {
-	_, errJob := scheduler.Every(1).Saturday().Hour().Do(operation)
-	if errJob != nil {
-		fmt.Println("Error doing EveryHourOnSaturday", errJob)
-		return
-	}
+func EverySaturdaySundayThreeHour(operation func()) {
+    _, errJob := scheduler.Every(3).Hours().Saturday().Sunday().Do(operation)
+    
+    if errJob != nil {
+        fmt.Println("Error scheduling gocron job:", errJob)
+        return
+    }
+    
+    // Start the scheduler
+    scheduler.StartAsync()
 }
 
 func StartBlocking() {
