@@ -6,7 +6,7 @@ require (
 	github.com/go-co-op/gocron v1.37.0
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/nedpals/supabase-go v0.4.0
-	gopkg.in/telebot.v3 v3.3.7
+	gopkg.in/telebot.v3 v3.3.8
 )
 
 require (
@@ -23,6 +23,6 @@ require (
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/stretchr/testify v1.8.3 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/net v0.27.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/net v0.28.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
 )
