@@ -1,6 +1,6 @@
 module gobot
 
-go 1.22.5
+go 1.23.0
 
 require (
 	github.com/go-co-op/gocron v1.37.0
@@ -24,5 +24,5 @@ require (
 	github.com/stretchr/testify v1.8.3 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/net v0.28.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
+	golang.org/x/text v0.18.0 // indirect
 )

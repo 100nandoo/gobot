@@ -9,44 +9,86 @@ import (
 	"time"
 )
 
-func Scouting() {
-	pkg.EverySaturdaySundayThreeHour(func() {
-	fmt.Println("Scouting warta")
-	_, lastRow, err := getData()
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
+func Scouting(now bool) {
+	scoutingLogic := func() {
+		fmt.Println("Scouting warta")
+		_, lastRow, err := getData()
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+
+		filteredData, err := filterData(lastRow)
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+
+		// Convert filteredData to SupabaseWarta format
+		warta := SupabaseWarta{
+			CreatedAt:    int(time.Now().Unix()),
+			BulletinDate: filteredData["BulletinDate"],
+			Preacher1:    filteredData["PreacherID1"],
+			Preacher2:    filteredData["PreacherID2"],
+		}
+
+		// Insert data into Supabase and capture the result
+		if err = UpdateOrInsert(warta); err != nil {
+			fmt.Println("Error during insertion:", err)
+			return
+		}
 	}
 
-	filteredData, err := filterData(lastRow)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
+	if now {
+		scoutingLogic()
+	} else {
+		pkg.EverySaturdaySundayThreeHour(scoutingLogic)
 	}
+}
 
-	// fmt.Println("\nFiltered Data:")
-	// for key, value := range filteredData {
-	//     fmt.Printf("%s: %s\n", key, value)
-	// }
+var indonesianMonths = map[string]string{
+	"Januari":   "01",
+	"JANUARI":   "01",
+	"Februari":  "02",
+	"FEBRUARI":  "02",
+	"Maret":     "03",
+	"MARET":     "03",
+	"April":     "04",
+	"APRIL":     "04",
+	"Mei":       "05",
+	"MEI":       "05",
+	"Juni":      "06",
+	"JUNI":      "06",
+	"Juli":      "07",
+	"JULI":      "07",
+	"Agustus":   "08",
+	"AGUSTUS":   "08",
+	"September": "09",
+	"SEPTEMBER": "09",
+	"Oktober":   "10",
+	"OKTOBER":   "10",
+	"November":  "11",
+	"NOVEMBER":  "11",
+	"Desember":  "12",
+	"DESEMBER":  "12",
+}
 
-	// Convert filteredData to SupabaseWarta format
-	warta := SupabaseWarta{
-		CreatedAt:    int(time.Now().Unix()),
-		BulletinDate: filteredData["BulletinDate"],
-		Preacher1:    filteredData["PreacherID1"],
-		Preacher2:    filteredData["PreacherID2"],
+// Function to parse Indonesian date format (e.g., "1 Januari 2024")
+func parseIndonesianDate(dateStr string) (time.Time, error) {
+	for month, num := range indonesianMonths {
+		dateStr = strings.Replace(dateStr, month, num, 1)
 	}
+	return time.Parse("2 01 2006", dateStr)
+}
 
-	// Print warta before insertion
-	// fmt.Println("\nWarta Data to be Inserted:")
-	// fmt.Printf("%+v\n", warta)
-
-	// Insert data into Supabase and capture the result
-	if err = UpdateOrInsert(warta); err != nil {
-		fmt.Println("Error during insertion:", err)
-		return
+// Function to find the next Sunday from the current date
+func nextSunday() time.Time {
+	now := time.Now()
+	offset := (7 - int(now.Weekday())) % 7
+	if offset == 0 {
+		offset = 7
 	}
-	})
+	return now.AddDate(0, 0, offset)
 }
 
 func getData() ([]string, map[string]string, error) {
@@ -83,23 +125,34 @@ func getData() ([]string, map[string]string, error) {
 	}
 
 	if bulletinDateIndex == -1 {
-		return nil, nil, fmt.Errorf("bulletin Date column not found")
+		return nil, nil, fmt.Errorf("BulletinDate column not found")
 	}
 
-	// Prepare the last row with non-empty Bulletin Date
-	var lastRow map[string]string
-	for i := len(records) - 1; i > 0; i-- {
-		row := records[i]
+	// Find the row with the upcoming Sunday's date
+	upcomingSunday := nextSunday()
+
+	for _, row := range records[1:] {
 		if bulletinDateIndex < len(row) && strings.TrimSpace(row[bulletinDateIndex]) != "" {
-			lastRow = make(map[string]string)
-			for j, value := range row {
-				lastRow[header[j]] = strings.TrimSpace(value)
+			dateStr := strings.TrimSpace(row[bulletinDateIndex])
+			parsedDate, err := parseIndonesianDate(dateStr)
+			if err != nil {
+				continue // Skip if parsing fails
 			}
-			return header, lastRow, nil
+
+			// Check if the parsed date matches the upcoming Sunday
+			if parsedDate.Year() == upcomingSunday.Year() &&
+				parsedDate.YearDay() == upcomingSunday.YearDay() {
+				// Return the row with the matching Bulletin Date
+				lastRow := make(map[string]string)
+				for j, value := range row {
+					lastRow[header[j]] = strings.TrimSpace(value)
+				}
+				return header, lastRow, nil
+			}
 		}
 	}
 
-	return header, nil, fmt.Errorf("no non-empty Bulletin Date found")
+	return header, nil, fmt.Errorf("no matching Bulletin Date for upcoming Sunday found")
 }
 
 func filterData(row map[string]string) (map[string]string, error) {

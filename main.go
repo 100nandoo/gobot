@@ -19,6 +19,6 @@ func main() {
 
 	go summarizer.Run()
 
-	warta.Scouting()
+	warta.Scouting(false)
 	pkg.StartBlocking()
 }
