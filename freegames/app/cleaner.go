@@ -25,17 +25,23 @@ func findOldSupabasePosts(supabasePosts []freegames.SupabasePost) []freegames.Su
 
 /*
 Cleaning
-Run every day at 12:00
+Run every saturday at 01:00
 1. Find SupabasePost(s) that is older than 7 days ago
 2. Delete it
 */
-func Cleaning() {
-	pkg.EverydayAtThisHour(func() {
-		fmt.Println("Cleaning free games")
-		supabasePosts := freegames.GetAllPost()
-		oldPosts := findOldSupabasePosts(supabasePosts)
-		for _, post := range oldPosts {
-			freegames.Delete(post)
-		}
-	}, "12:00")
+func Cleaning(now bool) {
+    cleaningLogic := func() {
+        fmt.Println("Cleaning free games")
+        supabasePosts := freegames.GetAllPost()
+        oldPosts := findOldSupabasePosts(supabasePosts)
+        for _, post := range oldPosts {
+            freegames.Delete(post)
+        }
+    }
+
+    if now {
+        cleaningLogic() 
+    } else {
+        pkg.EverySaturdayDayAtThisHour(cleaningLogic, "01:00")
+    }
 }

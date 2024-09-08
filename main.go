@@ -10,15 +10,15 @@ import (
 )
 
 func main() {
-	fmt.Println("Gobot v1.9 started...")
+	fmt.Println("Gobot v1.9.1 started...")
 	app.Scouting()
-	app.Cleaning()
+	app.Cleaning(false)
 
 	remoteok.Scouting()
-	remoteok.Cleaning()
-
-	go summarizer.Run()
+	remoteok.Cleaning(false)
 
 	warta.Scouting(false)
+
+	go summarizer.Run()
 	pkg.StartBlocking()
 }

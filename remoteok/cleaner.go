@@ -21,17 +21,23 @@ func findOldSupabaseJobs(supabaseJobs []SupabaseJob) []SupabaseJob {
 
 /*
 Cleaning
-Run every day at 10:30
+Run every saturday at 10:30
 1. Find SupabaseJob(s) that is older than 7 days ago
 2. Delete it
 */
-func Cleaning() {
-	pkg.EverydayAtThisHour(func() {
+func Cleaning(now bool) {
+	cleaningLogic := func() {
 		fmt.Println("Cleaning remoteOk")
 		supabaseJobs := GetAllSupabaseJob()
 		oldPosts := findOldSupabaseJobs(supabaseJobs)
 		for _, post := range oldPosts {
 			Delete(post)
 		}
-	}, "10:30")
+	}
+
+	if now {
+		cleaningLogic()
+	} else {
+		pkg.EverySaturdayDayAtThisHour(cleaningLogic, "10:30")
+	}
 }
