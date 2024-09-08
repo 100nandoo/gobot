@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Gobot v1.8 started...")
+	fmt.Println("Gobot v1.9 started...")
 	app.Scouting()
 	app.Cleaning()
 
