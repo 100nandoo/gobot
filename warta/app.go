@@ -8,19 +8,19 @@ import (
 	"strings"
 	"time"
 )
-
 func Scouting(now bool) {
 	scoutingLogic := func() {
-		fmt.Println("Scouting warta")
+		pkg.LogWithTimestamp("Scouting warta")
+
 		_, lastRow, err := getData()
 		if err != nil {
-			fmt.Println("Error:", err)
+			pkg.LogWithTimestamp("Error: %v", err)
 			return
 		}
 
 		filteredData, err := filterData(lastRow)
 		if err != nil {
-			fmt.Println("Error:", err)
+			pkg.LogWithTimestamp("Error: %v", err)
 			return
 		}
 
@@ -34,7 +34,7 @@ func Scouting(now bool) {
 
 		// Insert data into Supabase and capture the result
 		if err = UpdateOrInsert(warta); err != nil {
-			fmt.Println("Error during insertion:", err)
+			pkg.LogWithTimestamp("Error during insertion: %v", err)
 			return
 		}
 	}
@@ -83,12 +83,13 @@ func parseIndonesianDate(dateStr string) (time.Time, error) {
 
 // Function to find the next Sunday from the current date
 func nextSunday() time.Time {
-	now := time.Now()
-	offset := (7 - int(now.Weekday())) % 7
-	if offset == 0 {
-		offset = 7
-	}
-	return now.AddDate(0, 0, offset)
+	now := time.Now().Truncate(24 * time.Hour) // Reset the time part to midnight
+
+	// Since the function runs on Saturday, we know the next Sunday is tomorrow
+	nextSunday := now.AddDate(0, 0, 1)
+	pkg.LogWithTimestamp("Next Sunday: %v", nextSunday.Format("2006-01-02"))
+	
+	return nextSunday
 }
 
 func getData() ([]string, map[string]string, error) {
@@ -135,7 +136,9 @@ func getData() ([]string, map[string]string, error) {
 		if bulletinDateIndex < len(row) && strings.TrimSpace(row[bulletinDateIndex]) != "" {
 			dateStr := strings.TrimSpace(row[bulletinDateIndex])
 			parsedDate, err := parseIndonesianDate(dateStr)
+			// pkg.LogWithTimestamp("Parsed date: %v", parsedDate.Format("2006-01-02"))
 			if err != nil {
+				pkg.LogWithTimestamp("Error: %v", err)
 				continue // Skip if parsing fails
 			}
 
@@ -144,15 +147,28 @@ func getData() ([]string, map[string]string, error) {
 				parsedDate.YearDay() == upcomingSunday.YearDay() {
 				// Return the row with the matching Bulletin Date
 				lastRow := make(map[string]string)
+
 				for j, value := range row {
 					lastRow[header[j]] = strings.TrimSpace(value)
 				}
+				preacherID1 := lastRow["PreacherID1"]
+				preacherID2 := lastRow["PreacherID2"]
+				pkg.LogWithTimestamp("PreacherID1: %s, PreacherID2: %s", preacherID1, preacherID2)
+
 				return header, lastRow, nil
 			}
 		}
 	}
 
 	return header, nil, fmt.Errorf("no matching Bulletin Date for upcoming Sunday found")
+}
+
+func formatMap(m map[string]string) string {
+	var result string
+	for key, value := range m {
+		result += fmt.Sprintf("%s: %s\n", key, value)
+	}
+	return result
 }
 
 func filterData(row map[string]string) (map[string]string, error) {
