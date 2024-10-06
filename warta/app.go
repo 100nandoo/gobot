@@ -10,7 +10,7 @@ import (
 )
 func Scouting(now bool) {
 	scoutingLogic := func() {
-		pkg.LogWithTimestamp("Scouting warta")
+		pkg.LogWithTimestamp("Scouting warta started")
 
 		_, lastRow, err := getData()
 		if err != nil {
@@ -37,12 +37,15 @@ func Scouting(now bool) {
 			pkg.LogWithTimestamp("Error during insertion: %v", err)
 			return
 		}
+		pkg.LogWithTimestamp("Scouting warta finished successfully")
 	}
 
 	if now {
+		pkg.LogWithTimestamp("Running scouting logic immediately")
 		scoutingLogic()
 	} else {
-		pkg.EverySaturdaySundayThreeHour(scoutingLogic)
+		pkg.LogWithTimestamp("Scheduling scouting logic for Saturday and Sunday")
+		pkg.EverySaturdayDayAtThisHour(scoutingLogic, "12:12")
 	}
 }
 
