@@ -44,7 +44,7 @@ func Scouting(now bool) {
 		pkg.LogWithTimestamp("Running scouting logic immediately")
 		scoutingLogic()
 	} else {
-		pkg.LogWithTimestamp("Scheduling scouting logic for Saturday and Sunday")
+		pkg.LogWithTimestamp("Scheduling scouting logic for Saturday at 12:12")
 		pkg.EverySaturdayDayAtThisHour(scoutingLogic, "12:12")
 	}
 }

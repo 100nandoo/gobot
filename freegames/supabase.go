@@ -1,7 +1,6 @@
 package freegames
 
 import (
-	"fmt"
 	"gobot/pkg"
 )
 
@@ -24,7 +23,7 @@ func GetAllPost() []SupabasePost {
 	var results []SupabasePost
 	err := pkg.SupabaseClient.DB.From(dbName).Select("*").Execute(&results)
 	if err != nil {
-		fmt.Println("Error calling GetAllPost", err)
+		pkg.LogWithTimestamp("Error calling GetAllPost", err)
 		return nil
 	}
 	return results
@@ -44,7 +43,7 @@ func Insert(post Post) {
 		FoundAt: pkg.NowSupabaseDate(),
 	}).Execute(&results)
 	if err != nil {
-		fmt.Println("Error calling Insert", err)
+		pkg.LogWithTimestamp("Error calling Insert %v", err)
 		return
 	}
 }
@@ -55,10 +54,12 @@ Delete
 Delete a row in Games Database
 */
 func Delete(post SupabasePost) {
-	var results []SupabasePost
-	err := pkg.SupabaseClient.DB.From(dbName).Delete().Eq("url", post.URL).Execute(&results)
-	if err != nil {
-		fmt.Println("Error calling Delete", err)
-		return
-	}
+    var results []SupabasePost
+    
+    err := pkg.SupabaseClient.DB.From(dbName).Delete().Eq("found_at", post.FoundAt).Execute(&results)
+    if err != nil {
+        pkg.LogWithTimestamp("Error calling Delete: %v", err)
+        return
+    }
 }
+

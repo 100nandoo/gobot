@@ -2,6 +2,7 @@ package freegames
 
 import (
 	"gobot/config"
+	"gobot/pkg"
 	"os"
 	"strconv"
 	"time"
@@ -24,12 +25,12 @@ func SendPost(post Post) {
 
 	num, chatIdErr := strconv.ParseInt(os.Getenv(config.TelegramFreeGames), 10, 64)
 	if chatIdErr != nil {
-		println("Error from send post chatIdErr", chatIdErr)
+		pkg.LogWithTimestamp("Error from send post chatIdErr: %v", chatIdErr)
 		return
 	}
 	_, err := b.Send(tele.ChatID(num), post.URL)
 	if err != nil {
-		println("Error from send post", err)
+		pkg.LogWithTimestamp("Error from send post: %v", err)
 		return
 	}
 }

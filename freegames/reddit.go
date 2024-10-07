@@ -38,13 +38,13 @@ type Post struct {
 func getPost(subreddit string) (*[]Post, error) {
 	resp, err := http.Get("https://www.reddit.com/r/" + subreddit + "/top/.json")
 	if err != nil {
-		fmt.Println("Failed to get subreddit data:", err)
+		pkg.LogWithTimestamp("Failed to get subreddit data: %v", err)
 		return nil, err
 	}
 	var data Response
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
-		fmt.Println("Failed to decode JSON:", err)
+		pkg.LogWithTimestamp("Failed to decode JSON: %v", err)
 		return nil, err
 	}
 
