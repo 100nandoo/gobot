@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gobot/antam"
 	"gobot/freegames"
 	"gobot/pkg"
 	"gobot/remoteok"
@@ -19,5 +20,7 @@ func main() {
 	warta.Scouting(false)
 
 	go summarizer.Run()
+	go antam.Run()
+
 	pkg.StartBlocking()
 }

@@ -23,7 +23,7 @@ func GetAllPost() []SupabasePost {
 	var results []SupabasePost
 	err := pkg.SupabaseClient.DB.From(dbName).Select("*").Execute(&results)
 	if err != nil {
-		pkg.LogWithTimestamp("Error calling GetAllPost", err)
+		pkg.LogWithTimestamp("Error calling GetAllPost %v", err)
 		return nil
 	}
 	return results
