@@ -1,7 +1,6 @@
 package remoteok
 
 import (
-	"fmt"
 	"gobot/pkg"
 )
 
@@ -27,7 +26,7 @@ Run every saturday at 10:30
 */
 func Cleaning(now bool) {
 	cleaningLogic := func() {
-		fmt.Println("Cleaning remoteOk")
+		pkg.LogWithTimestamp("Cleaning remoteOk")
 		supabaseJobs := GetAllSupabaseJob()
 		oldPosts := findOldSupabaseJobs(supabaseJobs)
 		for _, post := range oldPosts {

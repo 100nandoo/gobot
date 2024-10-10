@@ -1,7 +1,6 @@
 package remoteok
 
 import (
-	"fmt"
 	"gobot/pkg"
 )
 
@@ -39,7 +38,7 @@ Run every day at 10:00
 */
 func Scouting() {
 	pkg.EverydayAtThisHour(func() {
-		fmt.Println("Scouting remoteOk")
+		pkg.LogWithTimestamp("Scouting remoteOk")
 		var merged = merge()
 		for _, job := range merged {
 			SendJob(job)

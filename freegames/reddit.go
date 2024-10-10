@@ -2,7 +2,6 @@ package freegames
 
 import (
 	"encoding/json"
-	"fmt"
 	"gobot/pkg"
 	"net/http"
 )
@@ -124,7 +123,7 @@ func GetPostsAndFilter() []Post {
 
 	result := append(filteredSteamPosts, filteredFindingPosts...)
 	for _, value := range result {
-		fmt.Println(value.Score, value.Title, value.URL)
+		pkg.LogWithTimestampInt(value.Score, value.Title, value.URL)
 	}
 
 	return result

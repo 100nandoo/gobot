@@ -199,12 +199,10 @@ func UpdateOrInsert(warta SupabaseWarta) error {
 
 	if existingWarta != nil {
 		if !isIdentical(*existingWarta, warta) {
-			// fmt.Println("Update")
 			Update(warta)
 			SendWarta(warta)
 		}
 	} else {
-		// fmt.Println("Insert")
 		Insert(warta)
 		SendWarta(warta)
 	}

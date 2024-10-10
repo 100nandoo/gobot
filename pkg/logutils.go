@@ -12,3 +12,7 @@ const TimeFormat = "2006-01-02 15:04:05"
 func LogWithTimestamp(message string, args ...interface{}) {
 	fmt.Println(time.Now().Format(TimeFormat), fmt.Sprintf(message, args...))
 }
+
+func LogWithTimestampInt(a ...any) {
+	fmt.Println(time.Now().Format(TimeFormat), fmt.Sprint(a...))
+}
