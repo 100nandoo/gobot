@@ -3,6 +3,7 @@ module gobot
 go 1.23.1
 
 require (
+	github.com/PuerkitoBio/goquery v1.10.0
 	github.com/go-co-op/gocron v1.37.0
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/nedpals/supabase-go v0.4.0
@@ -10,7 +11,6 @@ require (
 )
 
 require (
-	github.com/PuerkitoBio/goquery v1.10.0 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect

@@ -5,7 +5,6 @@ import (
 	"gobot/freegames"
 	"gobot/pkg"
 	"gobot/remoteok"
-	"gobot/summarizer"
 	"gobot/warta"
 )
 
@@ -21,7 +20,6 @@ func main() {
 
 	antam.Scouting(false)
 
-	go summarizer.Run()
 	go antam.Run()
 
 	pkg.StartBlocking()
