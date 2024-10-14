@@ -1,10 +1,13 @@
-FROM golang:1.23.1-alpine AS builder
+FROM golang:1.23.2-alpine AS builder
+RUN apk add --no-cache ca-certificates
 WORKDIR /build
-ADD go.mod .
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
-RUN go build -ldflags="-s -w" -o gobot main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o gobot main.go
 
-FROM alpine
+FROM scratch
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 WORKDIR /app
 COPY --from=builder /build/gobot /app/gobot
 CMD ["./gobot"]
