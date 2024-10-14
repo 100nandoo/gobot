@@ -25,7 +25,7 @@ func Scouting(now bool) {
 		if immediate {
 			execute()
 		} else {
-			pkg.EverydayAtThisHour(execute, timeStr)
+			pkg.EverydayOnWeekdaysAt(execute, timeStr)
 		}
 	}
 

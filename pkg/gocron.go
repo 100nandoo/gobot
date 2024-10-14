@@ -36,6 +36,36 @@ func EverydayAtThisHour(operation func(), hour string) {
 	}
 }
 
+// EverydayOnWeekdaysAt schedules a job to run at a specific hour on weekdays (Monday to Friday)
+func EverydayOnWeekdaysAt(operation func(), hour string) {
+	// Parse the hour to ensure it’s valid
+	if _, err := time.Parse("15:04", hour); err != nil {
+		fmt.Println("Error parsing hour:", err)
+		return
+	}
+
+	// Schedule the job for the specified hour
+	_, errJob := scheduler.Every(1).Day().At(hour).Do(func() {
+		// Check if today is a weekday before executing the operation
+		if isWeekday() {
+			operation()
+		} else {
+			fmt.Println("Job skipped; today is not a weekday.")
+		}
+	})
+
+	if errJob != nil {
+		fmt.Println("Error scheduling gocron job:", errJob)
+		return
+	}
+}
+
+// isWeekday checks if the current day is a weekday
+func isWeekday() bool {
+	weekday := time.Now().Weekday()
+	return weekday >= time.Monday && weekday <= time.Friday
+}
+
 /*
 EverySaturdayDayAtThisHour
 
