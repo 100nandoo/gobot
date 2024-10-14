@@ -19,6 +19,8 @@ func main() {
 
 	warta.Scouting(false)
 
+	antam.Scouting(false)
+
 	go summarizer.Run()
 	go antam.Run()
 
