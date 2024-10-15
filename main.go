@@ -5,6 +5,7 @@ import (
 	"gobot/freegames"
 	"gobot/pkg"
 	"gobot/remoteok"
+	"gobot/spotifytube"
 	"gobot/warta"
 )
 
@@ -21,6 +22,7 @@ func main() {
 	antam.Scouting(false)
 
 	go antam.Run()
+	go spotifytube.Run()
 
 	pkg.StartBlocking()
 }
