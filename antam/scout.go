@@ -35,7 +35,5 @@ func Scouting(now bool) {
 	} else {
 		pkg.LogWithTimestamp("Scheduling scouting antam price")
 		sendGoldPriceAt("10:05", false)
-		sendGoldPriceAt("15:05", false)
-		sendGoldPriceAt("16:30", false)
 	}
 }
