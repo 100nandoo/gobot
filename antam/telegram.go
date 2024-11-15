@@ -26,7 +26,7 @@ Emas Antam Bot dibuat dengan ❤️ oleh @crossix`
 
 // Helper function to format the gold price response message
 func formatGoldPriceResponse(price GoldPrice) string {
-	return fmt.Sprintf("`Harga Emas:\n\nBeli: %s\nJual: %s`", price.Buy, price.Sell)
+	return fmt.Sprintf("`%s\nBeli: %s\nJual: %s`", price.Source, price.Buy, price.Sell)
 }
 
 func Run() {
@@ -87,7 +87,7 @@ SendPrice
 
 Send antam gold price to config.ChannelAntam channel
 */
-func SendPrice(price GoldPrice) {
+func SendPrice(prices ...GoldPrice) {
 	pref := tele.Settings{
 		Token:  os.Getenv(config.AntamTelegramBot),
 		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
@@ -105,7 +105,12 @@ func SendPrice(price GoldPrice) {
 		return
 	}
 
-	responseMessage := formatGoldPriceResponse(price)
+
+	var responseMessage string
+
+	for _, price := range prices {
+        responseMessage += formatGoldPriceResponse(price) + "\n\n"
+    }
 
 	_, sendErr := b.Send(tele.ChatID(num), responseMessage, &telebot.SendOptions{
 			ParseMode: telebot.ModeMarkdown,

@@ -12,6 +12,7 @@ import (
 type GoldPrice struct {
 	Buy  string
 	Sell string
+	Source string
 }
 
 // Get gold prices from the website. It returns a GoldPrice struct.
@@ -42,6 +43,7 @@ func getGoldPricesFromHTML() (*GoldPrice, error) {
 	return &GoldPrice{
 		Buy:  buyPrice,
 		Sell: sellPrice,
+		Source: "Gedung Antam Jakarta",
 	}, nil
 }
 
@@ -77,5 +79,6 @@ func getPluangGoldPricesFromHTML() (*GoldPrice, error) {
 	return &GoldPrice{
 		Buy:  buyPrice,
 		Sell: sellPrice,
+		Source: "Pluang.com",
 	}, nil
 }
