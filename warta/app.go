@@ -9,6 +9,7 @@ import (
 	"time"
 )
 func Scouting(now bool) {
+	checkAgain := false
 	scoutingLogic := func() {
 		pkg.LogWithTimestamp("Scouting warta started")
 
@@ -21,6 +22,13 @@ func Scouting(now bool) {
 		filteredData, err := filterData(lastRow)
 		if err != nil {
 			pkg.LogWithTimestamp("Error: %v", err)
+			return
+		}
+
+		// Check if PreacherID1 or PreacherID2 is empty
+		if filteredData["PreacherID1"] == "" || filteredData["PreacherID2"] == "" {
+			pkg.LogWithTimestamp("PreacherID1 or PreacherID2 is empty")
+			checkAgain = true
 			return
 		}
 
@@ -44,8 +52,12 @@ func Scouting(now bool) {
 		pkg.LogWithTimestamp("Running scouting logic immediately")
 		scoutingLogic()
 	} else {
-		pkg.LogWithTimestamp("Scheduling scouting logic for Saturday at 12:12")
-		pkg.EverySaturdayDayAtThisHour(scoutingLogic, "12:12")
+		pkg.LogWithTimestamp("Scheduling scouting logic for Saturday at 21:21")
+		pkg.SpecificDayAtThisHour(scoutingLogic, time.Saturday, "21:21")
+
+		if checkAgain {
+			pkg.SpecificDayAtThisHour(scoutingLogic, time.Sunday, "08:08")
+		}
 	}
 }
 

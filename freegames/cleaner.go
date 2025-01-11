@@ -2,6 +2,7 @@ package freegames
 
 import (
 	"gobot/pkg"
+	"time"
 )
 
 /*
@@ -40,6 +41,6 @@ func Cleaning(now bool) {
 	if now {
 		cleaningLogic()
 	} else {
-		pkg.EverySaturdayDayAtThisHour(cleaningLogic, "01:00")
+		pkg.SpecificDayAtThisHour(cleaningLogic, time.Saturday, "01:00")
 	}
 }

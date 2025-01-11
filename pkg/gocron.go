@@ -67,12 +67,12 @@ func isWeekday() bool {
 }
 
 /*
-EverySaturdayDayAtThisHour
+SpecificDayAtThisHour
 
-Start go cron job that is scheduled every Saturday day at specific hour define on the parameter
+Start go cron job that is scheduled every specific day at specific hour define on the parameter
 */
-func EverySaturdayDayAtThisHour(operation func(), hour string) {
-	_, errJob := scheduler.Every(1).Saturday().At(hour).Do(operation)
+func SpecificDayAtThisHour(operation func(), day time.Weekday, hour string) {
+	_, errJob := scheduler.Every(1).Weekday(day).At(hour).Do(operation)
 
 	if errJob != nil {
 		fmt.Println("Error doing gocron job", errJob)

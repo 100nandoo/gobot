@@ -2,6 +2,7 @@ package remoteok
 
 import (
 	"gobot/pkg"
+	"time"
 )
 
 /*
@@ -37,6 +38,6 @@ func Cleaning(now bool) {
 	if now {
 		cleaningLogic()
 	} else {
-		pkg.EverySaturdayDayAtThisHour(cleaningLogic, "10:30")
+		pkg.SpecificDayAtThisHour(cleaningLogic, time.Saturday, "10:30")
 	}
 }
