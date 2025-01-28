@@ -4,13 +4,14 @@ import (
 	"gobot/antam"
 	"gobot/freegames"
 	"gobot/pkg"
+	"gobot/reddit"
 	"gobot/remoteok"
 	"gobot/spotifytube"
 	"gobot/warta"
 )
 
 func main() {
-	pkg.LogWithTimestamp("Gobot v1.9.11 started...")
+	pkg.LogWithTimestamp("Gobot v1.9.12 started...")
 	freegames.Scouting()
 	freegames.Cleaning(false)
 
@@ -20,6 +21,8 @@ func main() {
 	warta.Scouting(false)
 
 	antam.Scouting(false)
+
+	reddit.Scouting(false)
 
 	go antam.Run()
 	go spotifytube.Run()
