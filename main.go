@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	pkg.LogWithTimestamp("Gobot v1.9.12 started...")
+	pkg.LogWithTimestamp("Gobot v1.9.13 started...")
 	freegames.Scouting()
 	freegames.Cleaning(false)
 
