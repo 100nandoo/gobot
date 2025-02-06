@@ -3,7 +3,6 @@ package reddit
 import (
 	"fmt"
 	"gobot/config"
-	"html"
 	"log"
 	"os"
 	"strconv"
@@ -38,18 +37,6 @@ func NewTelegramClient() (*TelegramClient, error) {
 		bot:    b,
 		chatID: num,
 	}, nil
-}
-
-func escapeMarkdown(text string) string {
-	// First decode HTML entities
-	decoded := html.UnescapeString(text)
-	
-	specialChars := []string{"_", "*", "`", "["}
-	escaped := decoded
-	for _, char := range specialChars {
-		escaped = strings.ReplaceAll(escaped, char, "\\"+char)
-	}
-	return escaped
 }
 
 func (t *TelegramClient) SendRedditPost(post *Post, isSilent bool) error {
