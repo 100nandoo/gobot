@@ -14,5 +14,6 @@ const ChannelAntam string = "TELEGRAM_CHANNEL_ANTAM"
 const ChannelReddit string = "TELEGRAM_CHANNEL_REDDIT"
 
 const MusicAPItoken string = "MUSIC_API_TOKEN"
-const SPOTIFY_ID string = "SPOTIFY_ID"
-const SPOTIFY_SECRET string = "SPOTIFY_SECRET"
+const SpotifyID string = "SPOTIFY_ID"
+const SpotifySecret string = "SPOTIFY_SECRET"
+const YoutubeToken string = "YOUTUBE_TOKEN"

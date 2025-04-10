@@ -1,14 +1,17 @@
 package spotifytube
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"regexp"
-	"strings"
 	"time"
 
 	"gobot/config"
+	"gobot/pkg"
+	"gobot/spotifytube/api"
 
+	"google.golang.org/api/youtube/v3"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -37,10 +40,20 @@ SpotifyTubeBot made with ❤️ by @crossix`
 var (
 	spotifyPattern = regexp.MustCompile(SPOTIFY_REGEX)
 	youtubePattern  = regexp.MustCompile(YOUTUBE_REGEX)
+	currentToken *api.SpotifyTokenResponse
+	youtubeService *youtube.Service
+	showLog = true
 )
 
 // Run initializes the bot and starts listening for messages
 func Run() {
+	service, err := api.InitYoutube()
+	youtubeService = service
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
 	pref := tele.Settings{
 		Token:  os.Getenv(config.SpotifytubeBot),
 		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
@@ -80,77 +93,73 @@ func handleTextMessage(c tele.Context) error {
 	}
 
 	// Check for YouTube URL
-	if youtubePattern.MatchString(messageText) {
-		return handleYoutubeURL(c, messageText)
-	}
+	// if youtubePattern.MatchString(messageText) {
+	// 	return handleYoutubeURL(c, messageText)
+	// }
 
 	return nil // No action taken for other messages
 }
 
 // handleSpotifyURL processes Spotify URLs
 func handleSpotifyURL(c tele.Context, messageText string) error {
-	resp, err := InspectUrl(messageText)
+	id, err := api.ExtractSpotifyTrackID(messageText)
 	if err != nil {
 		return sendErrorMessage(c, "Invalid Spotify URL")
 	}
-	
-	searchResp, err := Search(resp.Data.Name, resp.Data.ArtistNames[0], YOUTUBE_ONLY)
+
+	tokenResp, err := getValidSpotifyAccessToken()
 	if err != nil {
-		return sendErrorMessage(c, "Can't convert")
+		return sendErrorMessage(c, "Unable to retrieve Spotify token")
 	}
-	return sendTrackURLs(c, false, searchResp)
+
+	track, err := api.GetSpotifyTrack(id, tokenResp.AccessToken)
+	if err != nil {
+		return sendErrorMessage(c, "Unable to retrieve Spotify track")
+	}
+
+	if showLog {
+		pkg.LogWithTimestamp("Spotify Track: %s - %s", track.Name, track.Artists[0].Name)
+	}
+
+	query := fmt.Sprintf("%s %s", track.Name, track.Artists[0].Name)
+	searchResp, err := api.SearchYoutube(*youtubeService, query)
+	if err != nil {
+		return sendErrorMessage(c, "No matching YouTube results found")
+	}
+
+	return sendYoutubeURLs(c, searchResp)
 }
 
-// handleYoutubeURL processes YouTube URLs
-func handleYoutubeURL(c tele.Context, messageText string) error {
-	resp, err := InspectUrl(messageText)
-	if err != nil {
-		return sendErrorMessage(c, "Invalid YouTube URL")
+func getValidSpotifyAccessToken() (*api.SpotifyTokenResponse, error) {
+	// If there's no current token or the token is expired, get a new one
+	if currentToken == nil || time.Now().After(currentToken.RequestedAt.Add(time.Duration(currentToken.ExpiresIn)*time.Second)) {
+		// Fetch a new token
+		token, err := api.GetSpotifyAccessToken()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get new access token: %v", err)
+		}
+		// Update the global current token
+		currentToken = token
 	}
 
-	searchResp, err := Search(resp.Data.Name, resp.Data.ArtistNames[0], SPOTIFY_ONLY)
-	if err != nil {
-		return sendErrorMessage(c, "Can't convert")
-	}
-	return sendTrackURLs(c, true, searchResp)
+	// Return the current (valid) token
+	return currentToken, nil
 }
 
-// sendErrorMessage sends an error message to the user
 func sendErrorMessage(c tele.Context, message string) error {
 	return c.Send(message)
 }
 
-// sendTrackURLs sends the track URLs to the user
-func sendTrackURLs(c tele.Context, isSpotify bool, searchResp *SearchResponse) error {
-	// Check if there are tracks in the response
-	if len(searchResp.Tracks) == 0 {
-		return c.Send("No tracks found.")
+func sendYoutubeURLs(c tele.Context, searchResp *youtube.SearchListResponse) error {
+	if len(searchResp.Items) == 0 {
+		return c.Send("No items found.")
 	}
 
-	// Create a slice to hold the URLs
-	var urls []string
-
-	// Loop through each track and collect the URLs
-	for _, track := range searchResp.Tracks {
-		if isSpotify {
-			if track.Data.URL != nil {
-				urls = append(urls, *track.Data.URL)
-			} else {
-				log.Println("Warning: track.Data.URL is nil, skipping this entry.")
-			}
-		} else {
-			urls = append(urls, YOUTUBE_MUSIC_PREFIX+ *&track.Data.ExternalID)
+	for _, item := range searchResp.Items {
+		err := c.Send(YOUTUBE_MUSIC_PREFIX+ *&item.Id.VideoId)
+		if err != nil {
+			return err
 		}
 	}
-
-	// Check if any URLs were collected
-	if len(urls) == 0 {
-		return c.Send("No URLs found in the track data.")
-	}
-
-	// Format the URLs for sending
-	responseMessage := strings.Join(urls, "\n")
-
-	// Send the response message
-	return c.Send(responseMessage)
+	return nil
 }

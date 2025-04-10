@@ -11,7 +11,7 @@ import (
 const TimeFormat = "2006-01-02 15:04:05"
 
 // Max package name length for padding
-const MaxPackageNameLength = 15 // Adjust as needed
+const MaxPackageNameLength = 18 // Adjust as needed
 
 // LogWithTimestamp prints a log message with a timestamp and package name
 func LogWithTimestamp(message string, args ...interface{}) {
