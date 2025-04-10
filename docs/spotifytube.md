@@ -1,28 +1,29 @@
-# Spotify Tube Bot
-
+# Spotifytube
+Function Chain Call Chart for Spotifytube
 ```mermaid
 graph LR
     A --> S
-    A --> Sp
-    I --> Se
-    Se --> U
-    subgraph S[handleYoutubeURL]
-        I
-        Se
-        U
+    A --> Y
+    subgraph Y[handleYoutubeURL]
+        Ey --> V
+        V --> Ss
+        Ss --> Ssu
     end
 
-    subgraph Sp[handleSpotifyURL]
-        E --> G
-        G --> T
+    subgraph S[handleSpotifyURL]
+        E --> T
         T --> SY
-        SY --> Su
+        SY --> Syu
     end
 
     A[handleTextMessage]
     E[ExtractSpotifyTrackID]
-    G[GetSpotifyAccessToken]
     T[GetSpotifyTrack]
     SY[SearchYoutube]
-    Su[sendYoutubeURLs]
+    Syu[sendYoutubeURLs]
+
+    Ey[ExtractYoutubeVideoID]
+    V[GetVideo]
+    Ss[SearchSpotify]
+    Ssu[sendSpotifyURLs]
 ```
