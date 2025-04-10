@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"gobot/config"
@@ -93,7 +94,7 @@ func handleTextMessage(c tele.Context) error {
 	}
 
 	// Check for YouTube URL
-	if youtubePattern.MatchString(messageText) {
+	if youtubePattern.MatchString(messageText) || strings.Contains(messageText, "watch?v=") {
 		return handleYoutubeURL(c, messageText)
 	}
 

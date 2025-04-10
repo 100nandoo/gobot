@@ -23,17 +23,25 @@ func ExtractSpotifyTrackID(url string) (string, error) {
 
 func ExtractYoutubeVideoID(url string) (string, error) {
 	const param = "v="
-	idx := strings.Index(url, param)
-	if idx == -1 {
-		return "", fmt.Errorf("invalid video URL")
-	}
-	start := idx + len(param)
-	path := url[start:]
-	if parts := strings.SplitN(path, "&", 2); len(parts) > 0 {
-		if parts[0] == "" {
-			return "", fmt.Errorf("invalid video ID")
+	if idx := strings.Index(url, "youtu.be/"); idx != -1 {
+		start := idx + len("youtu.be/")
+		path := url[start:]
+		if parts := strings.SplitN(path, "?", 2); len(parts) > 0 {
+			if parts[0] == "" {
+				return "", fmt.Errorf("invalid video ID")
+			}
+			return parts[0], nil
 		}
-		return parts[0], nil
+	}
+	if idx := strings.Index(url, param); idx != -1 {
+		start := idx + len(param)
+		path := url[start:]
+		if parts := strings.SplitN(path, "&", 2); len(parts) > 0 {
+			if parts[0] == "" {
+				return "", fmt.Errorf("invalid video ID")
+			}
+			return parts[0], nil
+		}
 	}
 	return "", fmt.Errorf("unable to extract video ID")
 }
