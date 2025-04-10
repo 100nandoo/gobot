@@ -6,7 +6,8 @@ require (
 	github.com/PuerkitoBio/goquery v1.10.2
 	github.com/go-co-op/gocron v1.37.0
 	github.com/mmcdole/gofeed v1.3.0
-	github.com/nedpals/supabase-go v0.4.0
+	github.com/nedpals/supabase-go v0.5.0
+	google.golang.org/api v0.228.0
 	gopkg.in/telebot.v3 v3.3.8
 )
 
@@ -18,6 +19,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
@@ -42,7 +44,6 @@ require (
 	golang.org/x/oauth2 v0.28.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
-	google.golang.org/api v0.228.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250409194420-de1ac958c67a // indirect
 	google.golang.org/grpc v1.71.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
