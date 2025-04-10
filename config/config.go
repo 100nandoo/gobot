@@ -13,7 +13,6 @@ const TelegramWarta string = "TELEGRAM_CHANNEL_WARTA"
 const ChannelAntam string = "TELEGRAM_CHANNEL_ANTAM"
 const ChannelReddit string = "TELEGRAM_CHANNEL_REDDIT"
 
-const MusicAPItoken string = "MUSIC_API_TOKEN"
 const SpotifyID string = "SPOTIFY_ID"
 const SpotifySecret string = "SPOTIFY_SECRET"
 const YoutubeToken string = "YOUTUBE_TOKEN"

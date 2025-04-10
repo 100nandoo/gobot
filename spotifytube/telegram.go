@@ -33,8 +33,9 @@ Example:
 
 SpotifyTubeBot made with ❤️ by @crossix`
 
-	SPOTIFY_REGEX = `^(https?://)?((www|open)\.spotify\.com)/.+$`
-	YOUTUBE_REGEX = `^(https?\:\/\/)?((www|music)\.youtube\.com|youtu\.be)\/.+$`
+	SPOTIFY_REGEX        = `^(https?://)?((www|open)\.spotify\.com)/.+$`
+	YOUTUBE_REGEX        = `^(https?\:\/\/)?((www|music)\.youtube\.com|youtu\.be)\/.+$`
+	YOUTUBE_MUSIC_PREFIX = "https://music.youtube.com/watch?v="
 )
 
 // Compile regex patterns once

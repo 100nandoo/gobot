@@ -21,7 +21,7 @@ func Scouting(now bool) {
 			// }
 			pricePluang, errPluang := getPluangGoldPricesFromHTML()
 			if errPluang != nil {
-				pkg.LogWithTimestamp(fmt.Sprintf("Error fetching Pluang gold prices at %d:%d: %v", hour, minute, errPluang))
+				pkg.LogWithTimestamp("%s", fmt.Sprintf("Error fetching Pluang gold prices at %d:%d: %v", hour, minute, errPluang))
 				return
 			}
 			goldPrices := []GoldPrice{*pricePluang}

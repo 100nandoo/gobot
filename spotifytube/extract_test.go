@@ -41,6 +41,8 @@ func TestExtractYoutubeVideoID(t *testing.T) {
 		{"https://music.youtube.com/watch?v=SX_ViT4Ra7k", "SX_ViT4Ra7k", false},
 		{"https://www.youtube.com/watch?v=SX_ViT4Ra7k&list=PLNRPV4mrGOshXzInyb5X7DnVMNhOVfeIX", "SX_ViT4Ra7k", false},
 		{"https://music.youtube.com/watch?v=8BUIzLo1Dmk&list=PLcgpoLDUNq9hnkN9SFPUNirqmTaXhNje2", "8BUIzLo1Dmk", false},
+		{"https://youtu.be/UyAKpowkUDA?si=q0jqWGTm6PDO6Ls6", "UyAKpowkUDA", false},
+		{"Koe Wetzel, Jessie Murph - High Road (Official Video) - YouTube https://m.youtube.com/watch?v=UyAKpowkUDA", "UyAKpowkUDA", false},
 	}
 
 	for _, test := range tests {
