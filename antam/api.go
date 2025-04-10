@@ -10,8 +10,8 @@ import (
 
 // GoldPrice represents the sell and buy prices for gold
 type GoldPrice struct {
-	Buy  string
-	Sell string
+	Buy    string
+	Sell   string
 	Source string
 }
 
@@ -41,8 +41,8 @@ func getGoldPricesFromHTML() (*GoldPrice, error) {
 	sellPrice = priceRow.Find("td").Eq(9).Text()
 
 	return &GoldPrice{
-		Buy:  buyPrice,
-		Sell: sellPrice,
+		Buy:    buyPrice,
+		Sell:   sellPrice,
 		Source: "Gedung Antam Jakarta",
 	}, nil
 }
@@ -60,7 +60,7 @@ func getPluangGoldPricesFromHTML() (*GoldPrice, error) {
 	}
 
 	var sellPrice, buyPrice string
-	
+
 	doc.Find(".halfwidth").Each(func(i int, s *goquery.Selection) {
 		// Find the <p> element within the current <div>
 		s.Find("p").Each(func(j int, p *goquery.Selection) {
@@ -77,8 +77,8 @@ func getPluangGoldPricesFromHTML() (*GoldPrice, error) {
 	})
 
 	return &GoldPrice{
-		Buy:  buyPrice,
-		Sell: sellPrice,
+		Buy:    buyPrice,
+		Sell:   sellPrice,
 		Source: "Pluang.com",
 	}, nil
 }

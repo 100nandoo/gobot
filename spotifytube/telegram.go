@@ -34,16 +34,16 @@ Example:
 SpotifyTubeBot made with ❤️ by @crossix`
 
 	SPOTIFY_REGEX = `^(https?://)?((www|open)\.spotify\.com)/.+$`
-	YOUTUBE_REGEX  = `^(https?\:\/\/)?((www|music)\.youtube\.com|youtu\.be)\/.+$`
+	YOUTUBE_REGEX = `^(https?\:\/\/)?((www|music)\.youtube\.com|youtu\.be)\/.+$`
 )
 
 // Compile regex patterns once
 var (
 	spotifyPattern = regexp.MustCompile(SPOTIFY_REGEX)
-	youtubePattern  = regexp.MustCompile(YOUTUBE_REGEX)
-	currentToken *api.SpotifyTokenResponse
+	youtubePattern = regexp.MustCompile(YOUTUBE_REGEX)
+	currentToken   *api.SpotifyTokenResponse
 	youtubeService *youtube.Service
-	showLog = true
+	showLog        = true
 )
 
 // Run initializes the bot and starts listening for messages
@@ -185,7 +185,7 @@ func sendYoutubeURLs(c tele.Context, searchResp *youtube.SearchListResponse) err
 	}
 
 	for _, item := range searchResp.Items {
-		err := c.Send(YOUTUBE_MUSIC_PREFIX+ *&item.Id.VideoId)
+		err := c.Send(YOUTUBE_MUSIC_PREFIX + *&item.Id.VideoId)
 		if err != nil {
 			return err
 		}

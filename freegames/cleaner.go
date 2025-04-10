@@ -41,6 +41,6 @@ func Cleaning(now bool) {
 	if now {
 		cleaningLogic()
 	} else {
-		pkg.SpecificDayAtThisHour(cleaningLogic, time.Saturday, "01:00")
+		pkg.SpecificDayAtThisHour(cleaningLogic, time.Saturday, 1, 0)
 	}
 }

@@ -6,9 +6,9 @@ import (
 
 func TestExtractSpotifyTrackID(t *testing.T) {
 	tests := []struct {
-		url          string
-		expectedID   string
-		expectError  bool
+		url         string
+		expectedID  string
+		expectError bool
 	}{
 		{"https://open.spotify.com/track/1ek8UP8J0cHPVx9vGIztSi?si=d5a085a6c2e14300", "1ek8UP8J0cHPVx9vGIztSi", false},
 		{"https://open.spotify.com/track/5VJNF9RdCPN99IDCbmMchz", "5VJNF9RdCPN99IDCbmMchz", false},
@@ -33,9 +33,9 @@ func TestExtractSpotifyTrackID(t *testing.T) {
 
 func TestExtractYoutubeVideoID(t *testing.T) {
 	tests := []struct {
-		url          string
-		expectedID   string
-		expectError  bool
+		url         string
+		expectedID  string
+		expectError bool
 	}{
 		{"https://www.youtube.com/watch?v=SX_ViT4Ra7k", "SX_ViT4Ra7k", false},
 		{"https://music.youtube.com/watch?v=SX_ViT4Ra7k", "SX_ViT4Ra7k", false},

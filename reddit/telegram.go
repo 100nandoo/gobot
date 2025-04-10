@@ -42,8 +42,8 @@ func NewTelegramClient() (*TelegramClient, error) {
 func (t *TelegramClient) SendRedditPost(post *Post, isSilent bool) error {
 	caption := fmt.Sprintf(
 		"*%s*\n"+
-		"by %s ⬆️ %s\n"+
-		"[View on Reddit](https://old.reddit.com%s)",
+			"by %s ⬆️ %s\n"+
+			"[View on Reddit](https://old.reddit.com%s)",
 		escapeMarkdown(post.Title),
 		escapeMarkdown(post.Author),
 		escapeMarkdown(strconv.Itoa(post.Score)),

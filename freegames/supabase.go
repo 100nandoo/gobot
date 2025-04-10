@@ -54,12 +54,11 @@ Delete
 Delete a row in Games Database
 */
 func Delete(post SupabasePost) {
-    var results []SupabasePost
-    
-    err := pkg.SupabaseClient.DB.From(dbName).Delete().Eq("found_at", post.FoundAt).Execute(&results)
-    if err != nil {
-        pkg.LogWithTimestamp("Error calling Delete: %v", err)
-        return
-    }
-}
+	var results []SupabasePost
 
+	err := pkg.SupabaseClient.DB.From(dbName).Delete().Eq("found_at", post.FoundAt).Execute(&results)
+	if err != nil {
+		pkg.LogWithTimestamp("Error calling Delete: %v", err)
+		return
+	}
+}

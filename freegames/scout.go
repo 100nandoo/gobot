@@ -44,5 +44,5 @@ func Scouting() {
 			SendPost(post)
 			Insert(post)
 		}
-	}, "11:00")
+	}, 11, 00)
 }

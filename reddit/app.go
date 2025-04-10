@@ -31,10 +31,10 @@ func Scouting(now bool) {
 		postprocessingLogic()
 	} else {
 		pkg.LogWithTimestamp("Scheduling scouting logic across different days")
-		pkg.SpecificDayAtThisHour(pixelographyLogic, time.Monday, "10:10")
-		pkg.SpecificDayAtThisHour(mobileLogic, time.Tuesday, "10:10")
-		pkg.SpecificDayAtThisHour(itapLogic, time.Wednesday, "10:10")
-		pkg.SpecificDayAtThisHour(postprocessingLogic, time.Thursday, "10:10")
+		pkg.SpecificDayAtThisHour(pixelographyLogic, time.Monday, 10, 10)
+		pkg.SpecificDayAtThisHour(mobileLogic, time.Tuesday, 10, 10)
+		pkg.SpecificDayAtThisHour(itapLogic, time.Wednesday, 10, 10)
+		pkg.SpecificDayAtThisHour(postprocessingLogic, time.Thursday, 10, 10)
 	}
 }
 

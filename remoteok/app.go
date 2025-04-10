@@ -44,5 +44,5 @@ func Scouting() {
 			SendJob(job)
 			Insert(job)
 		}
-	}, "10:00")
+	}, 10, 00)
 }

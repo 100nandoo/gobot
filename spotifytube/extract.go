@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 )
+
 func ExtractSpotifyTrackID(url string) (string, error) {
 	const prefix = "/track/"
 	idx := strings.Index(url, prefix)

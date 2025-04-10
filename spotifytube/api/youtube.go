@@ -10,12 +10,12 @@ import (
 	"google.golang.org/api/youtube/v3"
 )
 
-func InitYoutube() (*youtube.Service, error){
-	token :=  os.Getenv(config.YoutubeToken)
-	
+func InitYoutube() (*youtube.Service, error) {
+	token := os.Getenv(config.YoutubeToken)
+
 	ctx := context.Background()
 	service, err := youtube.NewService(ctx, option.WithAPIKey(token))
-	
+
 	if err != nil {
 		log.Fatalf("Error creating new YouTube client: %v", err)
 	}

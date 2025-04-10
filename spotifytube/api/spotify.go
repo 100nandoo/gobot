@@ -59,42 +59,42 @@ func GetSpotifyAccessToken() (*SpotifyTokenResponse, error) {
 }
 
 type SpotifyTrackResponse struct {
-	Album            Album           `json:"album"`
-	Artists          []Artist        `json:"artists"`
-	AvailableMarkets []string        `json:"available_markets"`
-	DiscNumber       int             `json:"disc_number"`
-	DurationMs       int             `json:"duration_ms"`
-	Explicit         bool            `json:"explicit"`
-	ExternalIDs      ExternalIDs     `json:"external_ids"`
-	ExternalURLs     ExternalURLs    `json:"external_urls"`
-	Href             string          `json:"href"`
-	ID               string          `json:"id"`
-	IsPlayable       bool            `json:"is_playable"`
-	Restrictions     Restrictions    `json:"restrictions"`
-	Name             string          `json:"name"`
-	Popularity       int             `json:"popularity"`
-	PreviewURL       string          `json:"preview_url"`
-	TrackNumber      int             `json:"track_number"`
-	Type             string          `json:"type"`
-	URI              string          `json:"uri"`
-	IsLocal          bool            `json:"is_local"`
+	Album            Album        `json:"album"`
+	Artists          []Artist     `json:"artists"`
+	AvailableMarkets []string     `json:"available_markets"`
+	DiscNumber       int          `json:"disc_number"`
+	DurationMs       int          `json:"duration_ms"`
+	Explicit         bool         `json:"explicit"`
+	ExternalIDs      ExternalIDs  `json:"external_ids"`
+	ExternalURLs     ExternalURLs `json:"external_urls"`
+	Href             string       `json:"href"`
+	ID               string       `json:"id"`
+	IsPlayable       bool         `json:"is_playable"`
+	Restrictions     Restrictions `json:"restrictions"`
+	Name             string       `json:"name"`
+	Popularity       int          `json:"popularity"`
+	PreviewURL       string       `json:"preview_url"`
+	TrackNumber      int          `json:"track_number"`
+	Type             string       `json:"type"`
+	URI              string       `json:"uri"`
+	IsLocal          bool         `json:"is_local"`
 }
 
 type Album struct {
-	AlbumType         string        `json:"album_type"`
-	TotalTracks       int           `json:"total_tracks"`
-	AvailableMarkets  []string      `json:"available_markets"`
-	ExternalURLs      ExternalURLs  `json:"external_urls"`
-	Href              string        `json:"href"`
-	ID                string        `json:"id"`
-	Images            []Image       `json:"images"`
-	Name              string        `json:"name"`
-	ReleaseDate       string        `json:"release_date"`
-	ReleaseDatePrecision string     `json:"release_date_precision"`
-	Restrictions      Restrictions  `json:"restrictions"`
-	Type              string        `json:"type"`
-	URI               string        `json:"uri"`
-	Artists           []Artist      `json:"artists"`
+	AlbumType            string       `json:"album_type"`
+	TotalTracks          int          `json:"total_tracks"`
+	AvailableMarkets     []string     `json:"available_markets"`
+	ExternalURLs         ExternalURLs `json:"external_urls"`
+	Href                 string       `json:"href"`
+	ID                   string       `json:"id"`
+	Images               []Image      `json:"images"`
+	Name                 string       `json:"name"`
+	ReleaseDate          string       `json:"release_date"`
+	ReleaseDatePrecision string       `json:"release_date_precision"`
+	Restrictions         Restrictions `json:"restrictions"`
+	Type                 string       `json:"type"`
+	URI                  string       `json:"uri"`
+	Artists              []Artist     `json:"artists"`
 }
 
 type Artist struct {

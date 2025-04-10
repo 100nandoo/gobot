@@ -15,15 +15,15 @@ type InspectResponse struct {
 	Source string `json:"source"`
 	Type   string `json:"type"`
 	Data   struct {
-		ExternalID   string   `json:"externalId"`
-		PreviewURL   *string  `json:"previewUrl"`
-		Name         string   `json:"name"`
-		ArtistNames  []string `json:"artistNames"`
-		AlbumName    string   `json:"albumName"`
-		ImageURL     string   `json:"imageUrl"`
-		ISRC         *string  `json:"isrc"`
-		Duration     int      `json:"duration"`
-		URL          string   `json:"url"`
+		ExternalID  string   `json:"externalId"`
+		PreviewURL  *string  `json:"previewUrl"`
+		Name        string   `json:"name"`
+		ArtistNames []string `json:"artistNames"`
+		AlbumName   string   `json:"albumName"`
+		ImageURL    string   `json:"imageUrl"`
+		ISRC        *string  `json:"isrc"`
+		Duration    int      `json:"duration"`
+		URL         string   `json:"url"`
 	} `json:"data"`
 }
 
@@ -32,10 +32,10 @@ type SearchResponse struct {
 }
 
 type Track struct {
-	Source string    `json:"source"`
-	Status string    `json:"status"`
+	Source string     `json:"source"`
+	Status string     `json:"status"`
 	Data   SearchData `json:"data"`
-	Type   string    `json:"type"`
+	Type   string     `json:"type"`
 }
 
 type SearchData struct {
@@ -51,11 +51,11 @@ type SearchData struct {
 }
 
 const (
-	baseUrl       = "https://api.musicapi.com/public/"
+	baseUrl        = "https://api.musicapi.com/public/"
 	inspectUrlPath = "inspect/url"
-	searchUrlPath = "search"
+	searchUrlPath  = "search"
 
-	POST = "POST"
+	POST                 = "POST"
 	YOUTUBE_MUSIC_PREFIX = "https://music.youtube.com/watch?v="
 )
 

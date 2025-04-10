@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 )
+
 func Scouting(now bool) {
 	checkAgain := false
 	scoutingLogic := func() {
@@ -53,10 +54,10 @@ func Scouting(now bool) {
 		scoutingLogic()
 	} else {
 		pkg.LogWithTimestamp("Scheduling scouting logic for Saturday at 21:21")
-		pkg.SpecificDayAtThisHour(scoutingLogic, time.Saturday, "21:21")
+		pkg.SpecificDayAtThisHour(scoutingLogic, time.Saturday, 21, 21)
 
 		if checkAgain {
-			pkg.SpecificDayAtThisHour(scoutingLogic, time.Sunday, "08:08")
+			pkg.SpecificDayAtThisHour(scoutingLogic, time.Sunday, 8, 8)
 		}
 	}
 }
@@ -103,7 +104,7 @@ func nextSunday() time.Time {
 	// Since the function runs on Saturday, we know the next Sunday is tomorrow
 	nextSunday := now.AddDate(0, 0, 1)
 	pkg.LogWithTimestamp("Next Sunday: %v", nextSunday.Format("2006-01-02"))
-	
+
 	return nextSunday
 }
 

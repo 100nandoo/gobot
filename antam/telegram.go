@@ -14,7 +14,6 @@ import (
 )
 
 const (
-
 	helpMessage = `Halo ini adalah bot cek harga emas antam
 
 *Cara penggunaan:*
@@ -105,17 +104,16 @@ func SendPrice(prices ...GoldPrice) {
 		return
 	}
 
-
 	var responseMessage string
 
 	for _, price := range prices {
-        responseMessage += formatGoldPriceResponse(price) + "\n\n"
-    }
+		responseMessage += formatGoldPriceResponse(price) + "\n\n"
+	}
 
 	_, sendErr := b.Send(tele.ChatID(num), responseMessage, &telebot.SendOptions{
-			ParseMode: telebot.ModeMarkdown,
+		ParseMode: telebot.ModeMarkdown,
 	})
-	
+
 	if sendErr != nil {
 		pkg.LogWithTimestamp("Error from send price: %v", err)
 		return

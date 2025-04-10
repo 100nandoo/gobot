@@ -29,9 +29,9 @@ func LogWithTimestampInt(a ...any) {
 
 // getPackageName retrieves the package name of the caller
 func getPackageName() string {
-	pc, _, _, _ := runtime.Caller(2) // get the caller's PC, line, file, and error
+	pc, _, _, _ := runtime.Caller(2)         // get the caller's PC, line, file, and error
 	funcName := runtime.FuncForPC(pc).Name() // get the function name
-	parts := strings.Split(funcName, ".") // split by "."
+	parts := strings.Split(funcName, ".")    // split by "."
 	if len(parts) > 0 {
 		return parts[len(parts)-2] // return the package name
 	}

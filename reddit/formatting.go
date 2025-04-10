@@ -4,10 +4,11 @@ import (
 	"html"
 	"strings"
 )
+
 func escapeMarkdown(text string) string {
 	// First decode HTML entities
 	decoded := html.UnescapeString(text)
-	
+
 	specialChars := []string{"_", "*", "`"}
 	escaped := decoded
 	for _, char := range specialChars {
