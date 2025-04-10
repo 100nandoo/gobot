@@ -93,16 +93,16 @@ func handleTextMessage(c tele.Context) error {
 	}
 
 	// Check for YouTube URL
-	// if youtubePattern.MatchString(messageText) {
-	// 	return handleYoutubeURL(c, messageText)
-	// }
+	if youtubePattern.MatchString(messageText) {
+		return handleYoutubeURL(c, messageText)
+	}
 
 	return nil // No action taken for other messages
 }
 
 // handleSpotifyURL processes Spotify URLs
 func handleSpotifyURL(c tele.Context, messageText string) error {
-	id, err := api.ExtractSpotifyTrackID(messageText)
+	id, err := ExtractSpotifyTrackID(messageText)
 	if err != nil {
 		return sendErrorMessage(c, "Invalid Spotify URL")
 	}
@@ -112,7 +112,7 @@ func handleSpotifyURL(c tele.Context, messageText string) error {
 		return sendErrorMessage(c, "Unable to retrieve Spotify token")
 	}
 
-	track, err := api.GetSpotifyTrack(id, tokenResp.AccessToken)
+	track, err := api.GetSpotifyTrack(tokenResp.AccessToken, id)
 	if err != nil {
 		return sendErrorMessage(c, "Unable to retrieve Spotify track")
 	}
@@ -130,6 +130,34 @@ func handleSpotifyURL(c tele.Context, messageText string) error {
 	return sendYoutubeURLs(c, searchResp)
 }
 
+func handleYoutubeURL(c tele.Context, messageText string) error {
+	id, err := ExtractYoutubeVideoID(messageText)
+	if err != nil {
+		return sendErrorMessage(c, "Invalid Youtube URL")
+	}
+
+	resp, err := api.GetVideo(*youtubeService, id)
+	if err != nil && len(resp.Items) == 0 {
+		return sendErrorMessage(c, "Unable to retrieve Youtube video")
+	}
+
+	if showLog {
+		pkg.LogWithTimestamp("Youtube: %s - %s", resp.Items[0].Snippet.Title, resp.Items[0].Snippet.ChannelTitle)
+	}
+
+	query := fmt.Sprintf("%s %s", resp.Items[0].Snippet.Title, resp.Items[0].Snippet.ChannelTitle)
+
+	tokenResp, err := getValidSpotifyAccessToken()
+	if err != nil {
+		return sendErrorMessage(c, "Unable to retrieve Spotify token")
+	}
+	searchResp, err := api.SearchSpotify(tokenResp.AccessToken, query)
+	if err != nil {
+		return sendErrorMessage(c, "No matching YouTube results found")
+	}
+
+	return sendSpotifyURLs(c, searchResp)
+}
 func getValidSpotifyAccessToken() (*api.SpotifyTokenResponse, error) {
 	// If there's no current token or the token is expired, get a new one
 	if currentToken == nil || time.Now().After(currentToken.RequestedAt.Add(time.Duration(currentToken.ExpiresIn)*time.Second)) {
@@ -157,6 +185,20 @@ func sendYoutubeURLs(c tele.Context, searchResp *youtube.SearchListResponse) err
 
 	for _, item := range searchResp.Items {
 		err := c.Send(YOUTUBE_MUSIC_PREFIX+ *&item.Id.VideoId)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func sendSpotifyURLs(c tele.Context, searchResp *api.SpotifySearchResponse) error {
+	if len(searchResp.Tracks.Items) == 0 {
+		return c.Send("No Spotify tracks found.")
+	}
+
+	for _, item := range searchResp.Tracks.Items {
+		err := c.Send(item.ExternalURLs.Spotify)
 		if err != nil {
 			return err
 		}
