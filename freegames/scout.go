@@ -36,13 +36,19 @@ func merge() []Post {
 Scouting
 Run every day at 11:00
 */
-func Scouting() {
-	pkg.EverydayAtThisHour(func() {
+func Scouting(now bool) {
+	scoutingLogic := func() {
 		pkg.LogWithTimestamp("Scouting free games")
 		var merged = merge()
 		for _, post := range merged {
 			SendPost(post)
 			Insert(post)
 		}
-	}, 11, 00)
+	}
+
+	if now {
+		scoutingLogic()
+	} else {
+		pkg.EverydayAtThisHour(scoutingLogic, 11, 00)
+	}
 }
