@@ -6,7 +6,8 @@
       "matchManagers": ["gomod"],
       "matchPackagePrefixes": ["google.golang.org/"],
       "automerge": true,
-      "automergeType": "pr"
+      "automergeType": "pr",
+      "ignoreTests": true
     }
   ]
 }
