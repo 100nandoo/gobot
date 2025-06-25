@@ -7,7 +7,7 @@ require (
 	github.com/go-co-op/gocron/v2 v2.16.2
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/nedpals/supabase-go v0.5.0
-	google.golang.org/api v0.238.0
+	google.golang.org/api v0.239.0
 	gopkg.in/telebot.v3 v3.3.8
 )
 
