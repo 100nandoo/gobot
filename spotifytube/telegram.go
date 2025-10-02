@@ -21,15 +21,19 @@ const (
 	helpMessage = `Hello this is SpotifyTubeBot
 
 **Features:**
-- Convert YouTube music URL to Spotify URL and vice versa
-- Search song using title/artist
+- Convert YouTube Music URL to Spotify URL and vice versa
+- Show spotify song preview (since built in telegram spotify preview is not working)
 
-**2 ways to convert URL:**
-I. Send URL to the bot
-II. Type @spotifytubebot followed by URL in chat box on any conversation
+**How to use:**
 
-Example:
-@spotifytubebot https://music.youtube.com/watch?v=ezVbN7e-L7Y
+I. Send a Spotify URL directly to the bot  
+   → The bot will show a song preview (album art, title, artist)
+
+II. Send a YouTube URL directly to the bot  
+   → The bot will convert it to a Spotify link
+
+III. Add **/c** with the URL (at the start or end)  
+   → Forces conversion even for Spotify URLs
 
 SpotifyTubeBot made with ❤️ by @crossix`
 
@@ -77,6 +81,7 @@ func Run() {
 	// Register the help handler for both commands
 	bot.Handle("/help", helpHandler)
 	bot.Handle("/start", helpHandler)
+	bot.Handle("/c", handleConvertCommand)
 
 	// Handle incoming text messages
 	bot.Handle(tele.OnText, handleTextMessage)
@@ -85,13 +90,27 @@ func Run() {
 	bot.Start()
 }
 
+func handleConvertCommand(c tele.Context) error {
+	tags := c.Args()
+	messageText := tags[0]
+	if spotifyPattern.MatchString(messageText) {
+		return handleSpotifyURL(c, messageText, false)
+	}
+
+	// Check for YouTube URL
+	if youtubePattern.MatchString(messageText) || strings.Contains(messageText, "watch?v=") {
+		return handleYoutubeURL(c, messageText)
+	}
+	return nil
+}
+
 // handleTextMessage processes incoming text messages
 func handleTextMessage(c tele.Context) error {
 	messageText := c.Text()
 
 	// Check for Spotify URL
 	if spotifyPattern.MatchString(messageText) {
-		return handleSpotifyURL(c, messageText)
+		return handleSpotifyURL(c, messageText, true)
 	}
 
 	// Check for YouTube URL
@@ -103,7 +122,7 @@ func handleTextMessage(c tele.Context) error {
 }
 
 // handleSpotifyURL processes Spotify URLs
-func handleSpotifyURL(c tele.Context, messageText string) error {
+func handleSpotifyURL(c tele.Context, messageText string, isPreview bool) error {
 	id, err := ExtractSpotifyTrackID(messageText)
 	if err != nil {
 		return sendErrorMessage(c, "Invalid Spotify URL")
@@ -121,6 +140,10 @@ func handleSpotifyURL(c tele.Context, messageText string) error {
 
 	if showLog {
 		pkg.LogWithTimestamp("Spotify Track: %s - %s", track.Name, track.Artists[0].Name)
+	}
+
+	if isPreview {
+		return sendSpotifyPreview(c, track, messageText)
 	}
 
 	query := fmt.Sprintf("%s %s", track.Name, track.Artists[0].Name)
@@ -194,13 +217,28 @@ func sendYoutubeURLs(c tele.Context, searchResp *youtube.SearchListResponse) err
 	return nil
 }
 
+func sendSpotifyPreview(c tele.Context, track *api.SpotifyTrackResponse, text string) error {
+	photo := &tele.Photo{
+		File:    tele.FromURL(track.Album.Images[0].URL),
+		Caption: track.Name + "\nby " + track.Artists[0].Name + "\n" + text,
+	}
+	if err := c.Send(photo); err != nil {
+		return err
+	}
+	return nil
+}
+
 func sendSpotifyURLs(c tele.Context, searchResp *api.SpotifySearchResponse) error {
 	if len(searchResp.Tracks.Items) == 0 {
 		return c.Send("No Spotify tracks found.")
 	}
 
 	for _, item := range searchResp.Tracks.Items {
-		err := c.Send(item.ExternalURLs.Spotify)
+		photo := &tele.Photo{
+			File:    tele.FromURL(item.Album.Images[0].URL),
+			Caption: item.Name + "\nby " + item.Artists[0].Name + "\n" + item.ExternalURLs.Spotify,
+		}
+		err := c.Send(photo)
 		if err != nil {
 			return err
 		}
