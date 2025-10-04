@@ -1,29 +1,37 @@
 # Spotifytube
 Function Chain Call Chart for Spotifytube
 ```mermaid
-graph LR
-    A --> S
-    A --> Y
-    subgraph Y[handleYoutubeURL]
-        Ey --> V
-        V --> Ss
-        Ss --> Ssu
-    end
+---
+config:
+  look: neo
+  theme: neutral
+  layout: elk
+---
+flowchart LR
+ subgraph Y["handleYoutubeURL"]
+        V["GetVideo"]
+        Ey["ExtractYoutubeVideoID"]
+        Ss["SearchSpotify"]
+        Ssu["sendSpotifyURLs"]
+  end
+ subgraph S["handleSpotifyURL"]
+        P["sendSpotifyPreview"]
+        iP{"isPreview"}
+        G["getValidSpotifyAccessToken"]
+        E["ExtractSpotifyTrackID"]
+        T["GetSpotifyTrack"]
+        SY["SearchYoutube"]
+        Syu["sendYoutubeURLs"]
+  end
+    A["handleTextMessage"] --> S & Y
+    Ey --> V
+    V --> Ss
+    Ss --> Ssu
+    E --> G
+    G --> T
+    T --> iP
+    iP -. false .-> SY
+    iP -. true .-> P
+    SY --> Syu
 
-    subgraph S[handleSpotifyURL]
-        E --> T
-        T --> SY
-        SY --> Syu
-    end
-
-    A[handleTextMessage]
-    E[ExtractSpotifyTrackID]
-    T[GetSpotifyTrack]
-    SY[SearchYoutube]
-    Syu[sendYoutubeURLs]
-
-    Ey[ExtractYoutubeVideoID]
-    V[GetVideo]
-    Ss[SearchSpotify]
-    Ssu[sendSpotifyURLs]
 ```
