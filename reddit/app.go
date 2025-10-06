@@ -20,21 +20,30 @@ func Scouting(now bool) {
 	// Create scouting logic for each subreddit
 	pixelographyLogic := createScoutingLogic("pixelography", 100)
 	mobileLogic := createScoutingLogic("mobilephotography", 180)
-	itapLogic := createScoutingLogic("itookapicture", 1000)
 	postprocessingLogic := createScoutingLogic("postprocessing", 450)
+	itapLogic := createScoutingLogic("itookapicture", 1000)
+	earthLogic := createScoutingLogic("earthporn", 1500)
+	fujifilmLogic := createScoutingLogic("fujifilm", 1000)
+	sonyalphaLogic := createScoutingLogic("sonyalpha", 1000)
 
 	if now {
 		pkg.LogWithTimestamp("Running all scouting logic immediately")
 		pixelographyLogic()
 		mobileLogic()
-		itapLogic()
 		postprocessingLogic()
+		itapLogic()
+		earthLogic()
+		fujifilmLogic()
+		sonyalphaLogic()
 	} else {
 		pkg.LogWithTimestamp("Scheduling scouting logic across different days")
 		pkg.SpecificDayAtThisHour(pixelographyLogic, time.Monday, 10, 10)
-		pkg.SpecificDayAtThisHour(mobileLogic, time.Tuesday, 10, 10)
+		pkg.SpecificDayAtThisHour(mobileLogic, time.Monday, 10, 15)
+		pkg.SpecificDayAtThisHour(postprocessingLogic, time.Tuesday, 10, 10)
 		pkg.SpecificDayAtThisHour(itapLogic, time.Wednesday, 10, 10)
-		pkg.SpecificDayAtThisHour(postprocessingLogic, time.Thursday, 10, 10)
+		pkg.SpecificDayAtThisHour(earthLogic, time.Wednesday, 10, 15)
+		pkg.SpecificDayAtThisHour(fujifilmLogic, time.Thursday, 10, 10)
+		pkg.SpecificDayAtThisHour(sonyalphaLogic, time.Thursday, 10, 15)
 	}
 }
 
