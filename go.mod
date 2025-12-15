@@ -4,7 +4,7 @@ go 1.24.2
 
 require (
 	github.com/PuerkitoBio/goquery v1.11.0
-	github.com/go-co-op/gocron/v2 v2.17.0
+	github.com/go-co-op/gocron/v2 v2.19.0
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/nedpals/supabase-go v0.5.0
 	google.golang.org/api v0.257.0
