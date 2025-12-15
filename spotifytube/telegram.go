@@ -110,7 +110,7 @@ func handleTextMessage(c tele.Context) error {
 
 	// Check for Spotify URL
 	if spotifyPattern.MatchString(messageText) {
-		return handleSpotifyURL(c, messageText, true)
+		return handleSpotifyURL(c, messageText, false)
 	}
 
 	// Check for YouTube URL
