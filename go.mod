@@ -3,7 +3,7 @@ module gobot
 go 1.25.0
 
 require (
-	github.com/PuerkitoBio/goquery v1.11.0
+	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/go-co-op/gocron/v2 v2.19.1
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/nedpals/supabase-go v0.5.0
