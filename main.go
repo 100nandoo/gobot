@@ -2,6 +2,7 @@ package main
 
 import (
 	"gobot/antam"
+	"gobot/finance"
 	"gobot/freegames"
 	"gobot/pkg"
 	"gobot/reddit"
@@ -17,8 +18,11 @@ func main() {
 
 	reddit.Scouting(false)
 
+	finance.Scouting(false)
+
 	go antam.Run()
 	go spotifytube.Run()
+	go finance.Run()
 
 	pkg.StartBlocking()
 }
