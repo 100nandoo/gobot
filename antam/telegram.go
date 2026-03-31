@@ -41,7 +41,7 @@ func Run() {
 	}
 
 	b.Handle("/start", func(c tele.Context) error {
-		price, err := getGoldPricesFromHTML()
+		price, err := getGoldPrices()
 		if err != nil {
 			pkg.LogWithTimestamp("Error fetching gold prices: %v", err)
 			return c.Send("Sorry, I couldn't fetch the gold prices right now.", &telebot.SendOptions{

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -17,7 +18,7 @@ type GoldPrice struct {
 }
 
 // Get gold prices from the website. It returns a GoldPrice struct.
-func getGoldPricesFromHTML() (*GoldPrice, error) {
+func getGoldPrices() (*GoldPrice, error) {
 	resp, err := http.Get("https://harga-emas.org/")
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch page: %w", err)
@@ -29,22 +30,28 @@ func getGoldPricesFromHTML() (*GoldPrice, error) {
 		return nil, fmt.Errorf("failed to parse HTML: %w", err)
 	}
 
-	var sellPrice, buyPrice string
+	var perGramPrice string
 
-	// Find the first table with the class "in_table"
-	table := doc.Find(".in_table").First()
+	doc.Find("table.ComprehensiveTable_table__NjmlD tbody tr").EachWithBreak(func(_ int, row *goquery.Selection) bool {
+		unit := strings.TrimSpace(row.Find("td").First().Text())
+		if unit != "Gram (gr)" {
+			return true
+		}
 
-	// Select the row which contains the prices (4th row)
-	priceRow := table.Find("tr").Eq(3)
+		priceCell := row.Find("td").Eq(2).Clone()
+		priceCell.Find("span").Remove()
+		perGramPrice = strings.TrimSpace(priceCell.Text())
+		return false
+	})
 
-	// Get the last two <td> elements for sell and buy prices
-	buyPrice = priceRow.Find("td").Eq(8).Text()
-	sellPrice = priceRow.Find("td").Eq(9).Text()
+	if perGramPrice == "" {
+		return nil, fmt.Errorf("failed to find IDR per gram price in harga-emas table")
+	}
 
 	return &GoldPrice{
-		Buy:    buyPrice,
-		Sell:   sellPrice,
-		Source: "Gedung Antam Jakarta",
+		Buy:    perGramPrice,
+		Sell:   perGramPrice,
+		Source: "Harga-Emas.org",
 	}, nil
 }
 

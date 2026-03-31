@@ -14,7 +14,7 @@ func Scouting(now bool) {
 	sendGoldPriceAt := func(hour, minute uint, immediate bool) {
 		execute := func() {
 			// pkg.LogWithTimestamp(fmt.Sprintf("Scouting Antam at %s", timeStr))
-			// price, err := getGoldPricesFromHTML()
+			// price, err := getGoldPrices()
 			// if err != nil {
 			// 	pkg.LogWithTimestamp(fmt.Sprintf("Error fetching gold prices at %s: %v", timeStr, err))
 			// 	return
