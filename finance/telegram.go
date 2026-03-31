@@ -26,10 +26,33 @@ const helpMessage = `Finance Watchlist Bot
 - /t - Show threshold
 - /t set 5
 - /t reset
+- /i - Explain indicators and score
 - /s TSLA - Analyze one ticker
 - /vwra
 - /cspx
 - /help - Show this message`
+
+const indicatorHelpMessage = `*Indicators*
+- RSI(14): momentum, oversold/overbought
+- MACD(12,26,9): bullish/bearish crossover
+- SMA(50,200): trend direction
+- BB(20,2): price near upper/lower band
+
+*Composite Score*
+` + "`score = RSI + MACD + SMA + BB`" + `
+
+*Score Map*
+- >= 5: Strong Buy
+- >= 2: Buy
+- >= -1: Neutral
+- >= -4: Sell
+- < -4: Strong Sell
+
+*Points*
+- RSI: +3/+1/-1/-3
+- MACD: +2/-2
+- SMA: +2/-2
+- BB: +2/-2`
 
 func scoreEmoji(score int) string {
 	switch {
@@ -379,6 +402,12 @@ func Run() {
 	b.Handle("/w", watchlistCommand)
 
 	b.Handle("/t", thresholdCommand)
+
+	b.Handle("/i", func(c tele.Context) error {
+		return c.Send(indicatorHelpMessage, &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	})
 
 	b.Handle("/s", analyzeTickerCommand)
 
