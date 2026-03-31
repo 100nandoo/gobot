@@ -7,18 +7,28 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"gopkg.in/telebot.v3"
 	tele "gopkg.in/telebot.v3"
 )
 
-const helpMessage = `ETF Entry Reminder Bot
+const helpMessage = `Finance Watchlist Bot
 
 *Commands:*
-- /etf - Analyze both VWRA and CSPX
-- /vwra - Analyze VWRA (Vanguard FTSE All-World)
-- /cspx - Analyze CSPX (iShares Core S&P 500)
+- /a - Analyze saved list
+- /w - Show watchlist
+- /w add AAPL MSFT
+- /w rm AAPL
+- /w set AAPL MSFT NVDA
+- /w reset
+- /t - Show threshold
+- /t set 5
+- /t reset
+- /s TSLA - Analyze one ticker
+- /vwra
+- /cspx
 - /help - Show this message`
 
 func scoreEmoji(score int) string {
@@ -28,7 +38,7 @@ func scoreEmoji(score int) string {
 	case score >= 2:
 		return "\xF0\x9F\x94\xB5" // blue circle
 	case score >= -1:
-		return "\xE2\x9A\xAA"     // white circle
+		return "\xE2\x9A\xAA" // white circle
 	case score >= -4:
 		return "\xF0\x9F\x9F\xA0" // orange circle
 	default:
@@ -115,9 +125,27 @@ func formatAnalysis(etf ETFSymbol, r *IndicatorResult) string {
 	)
 }
 
-func analyzeAndRespond(c tele.Context, etfs []ETFSymbol) error {
+func formatWatchlist(symbols []ETFSymbol) string {
+	if len(symbols) == 0 {
+		return "Your watchlist is empty."
+	}
+
+	lines := make([]string, 0, len(symbols)+1)
+	lines = append(lines, "*Current watchlist:*")
+	for _, symbol := range symbols {
+		lines = append(lines, "- `"+symbol.Ticker+"`")
+	}
+
+	return strings.Join(lines, "\n")
+}
+
+func formatThreshold(threshold int) string {
+	return fmt.Sprintf("*Scout alert threshold:* `%+d`\nScheduled alerts are sent only when a ticker reaches this composite score or higher.", threshold)
+}
+
+func analyzeSymbols(symbols []ETFSymbol) string {
 	var response string
-	for _, etf := range etfs {
+	for _, etf := range symbols {
 		result, err := AnalyzeETF(etf.Ticker)
 		if err != nil {
 			pkg.LogWithTimestamp("Error analyzing %s: %v", etf.Ticker, err)
@@ -127,9 +155,198 @@ func analyzeAndRespond(c tele.Context, etfs []ETFSymbol) error {
 		response += formatAnalysis(etf, result) + "\n\n"
 	}
 
-	return c.Send(response, &telebot.SendOptions{
+	return strings.TrimSpace(response)
+}
+
+func sendMarkdownChunks(c tele.Context, message string) error {
+	const maxMessageSize = 3500
+
+	if len(message) <= maxMessageSize {
+		return c.Send(message, &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	}
+
+	parts := strings.Split(message, "\n\n")
+	var chunk string
+	for _, part := range parts {
+		candidate := part
+		if chunk != "" {
+			candidate = chunk + "\n\n" + part
+		}
+
+		if len(candidate) <= maxMessageSize {
+			chunk = candidate
+			continue
+		}
+
+		if chunk != "" {
+			if err := c.Send(chunk, &telebot.SendOptions{ParseMode: telebot.ModeMarkdown}); err != nil {
+				return err
+			}
+		}
+		chunk = part
+	}
+
+	if chunk == "" {
+		return nil
+	}
+
+	return c.Send(chunk, &telebot.SendOptions{
 		ParseMode: telebot.ModeMarkdown,
 	})
+}
+
+func analyzeAndRespond(c tele.Context, symbols []ETFSymbol) error {
+	response := analyzeSymbols(symbols)
+	return sendMarkdownChunks(c, response)
+}
+
+func thresholdCommand(c tele.Context) error {
+	chat := c.Chat()
+	if chat == nil {
+		return c.Send("Unable to determine chat.")
+	}
+
+	args := c.Args()
+	if len(args) == 0 {
+		return c.Send(formatThreshold(GetAlertThreshold(chat.ID)), &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	}
+
+	action := strings.ToLower(args[0])
+	switch action {
+	case "set":
+		if len(args) < 2 {
+			return c.Send("Usage: `/threshold set 5`", &telebot.SendOptions{
+				ParseMode: telebot.ModeMarkdown,
+			})
+		}
+
+		value, err := strconv.Atoi(args[1])
+		if err != nil {
+			return c.Send("Threshold must be a whole number between -10 and 10.")
+		}
+
+		if err := SaveAlertThreshold(chat.ID, value); err != nil {
+			return c.Send(err.Error())
+		}
+
+		return c.Send("Updated.\n\n"+formatThreshold(GetAlertThreshold(chat.ID)), &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	case "reset":
+		if err := ResetAlertThreshold(chat.ID); err != nil {
+			return c.Send(err.Error())
+		}
+		return c.Send("Reset to default.\n\n"+formatThreshold(GetAlertThreshold(chat.ID)), &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	default:
+		return c.Send("Unknown subcommand. Use `/t`, `/t set`, or `/t reset`.", &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	}
+}
+
+func watchlistCommand(c tele.Context) error {
+	chat := c.Chat()
+	if chat == nil {
+		return c.Send("Unable to determine chat.")
+	}
+
+	args := c.Args()
+	if len(args) == 0 {
+		return c.Send(formatWatchlist(GetWatchlist(chat.ID)), &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	}
+
+	action := strings.ToLower(args[0])
+	payload := args[1:]
+	switch action {
+	case "add":
+		if len(payload) == 0 {
+			return c.Send("Usage: `/w add AAPL MSFT`", &telebot.SendOptions{ParseMode: telebot.ModeMarkdown})
+		}
+		if err := ValidateTickers(payload); err != nil {
+			return c.Send(err.Error())
+		}
+		symbols, err := AddToWatchlist(chat.ID, payload)
+		if err != nil {
+			return c.Send(err.Error())
+		}
+		return c.Send("Updated.\n\n"+formatWatchlist(symbols), &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	case "remove":
+		if len(payload) == 0 {
+			return c.Send("Usage: `/w rm AAPL`", &telebot.SendOptions{ParseMode: telebot.ModeMarkdown})
+		}
+		symbols, err := RemoveFromWatchlist(chat.ID, payload)
+		if err != nil {
+			return c.Send(err.Error())
+		}
+		return c.Send("Updated.\n\n"+formatWatchlist(symbols), &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	case "set":
+		if len(payload) == 0 {
+			return c.Send("Usage: `/w set AAPL MSFT NVDA`", &telebot.SendOptions{ParseMode: telebot.ModeMarkdown})
+		}
+		if err := ValidateTickers(payload); err != nil {
+			return c.Send(err.Error())
+		}
+		if err := SaveWatchlist(chat.ID, payload); err != nil {
+			return c.Send(err.Error())
+		}
+		return c.Send("Updated.\n\n"+formatWatchlist(GetWatchlist(chat.ID)), &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	case "reset":
+		if err := ResetWatchlist(chat.ID); err != nil {
+			return c.Send(err.Error())
+		}
+		return c.Send("Reset to defaults.\n\n"+formatWatchlist(GetWatchlist(chat.ID)), &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	case "rm":
+		if len(payload) == 0 {
+			return c.Send("Usage: `/w rm AAPL`", &telebot.SendOptions{ParseMode: telebot.ModeMarkdown})
+		}
+		symbols, err := RemoveFromWatchlist(chat.ID, payload)
+		if err != nil {
+			return c.Send(err.Error())
+		}
+		return c.Send("Updated.\n\n"+formatWatchlist(symbols), &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	default:
+		return c.Send("Unknown subcommand. Use `/w`, `/w add`, `/w rm`, `/w set`, or `/w reset`.", &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	}
+}
+
+func analyzeTickerCommand(c tele.Context) error {
+	args := c.Args()
+	if len(args) == 0 {
+		return c.Send("Usage: `/s TSLA`", &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	}
+
+	tickers := parseTickers(args)
+	if len(tickers) == 0 {
+		return c.Send("Please provide at least one valid ticker.")
+	}
+
+	if err := ValidateTickers(tickers); err != nil {
+		return c.Send(err.Error())
+	}
+
+	return analyzeAndRespond(c, buildSymbols(tickers))
 }
 
 func Run() {
@@ -146,24 +363,42 @@ func Run() {
 
 	pkg.LogWithTimestamp("Finance bot started, listening for commands...")
 
-	b.Handle("/etf", func(c tele.Context) error {
-		pkg.LogWithTimestamp("Received /etf command")
-		return analyzeAndRespond(c, ETFs)
+	b.Handle("/a", func(c tele.Context) error {
+		pkg.LogWithTimestamp("Received /a command")
+		return analyzeAndRespond(c, GetWatchlist(c.Chat().ID))
 	})
 
 	b.Handle("/vwra", func(c tele.Context) error {
-		return analyzeAndRespond(c, []ETFSymbol{ETFs[0]})
+		return analyzeAndRespond(c, []ETFSymbol{DefaultSymbols[0]})
 	})
 
 	b.Handle("/cspx", func(c tele.Context) error {
-		return analyzeAndRespond(c, []ETFSymbol{ETFs[1]})
+		return analyzeAndRespond(c, []ETFSymbol{DefaultSymbols[1]})
 	})
 
-	b.Handle("/start", func(c tele.Context) error {
-		return analyzeAndRespond(c, ETFs)
+	b.Handle("/w", watchlistCommand)
+
+	b.Handle("/t", thresholdCommand)
+
+	b.Handle("/s", analyzeTickerCommand)
+
+	b.Handle("/stock", analyzeTickerCommand)
+
+	b.Handle("/ticker", analyzeTickerCommand)
+
+	b.Handle("/symbols", func(c tele.Context) error {
+		return c.Send(formatWatchlist(GetWatchlist(c.Chat().ID)), &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
 	})
 
 	b.Handle("/help", func(c tele.Context) error {
+		return c.Send(helpMessage, &telebot.SendOptions{
+			ParseMode: telebot.ModeMarkdown,
+		})
+	})
+
+	b.Handle("/start", func(c tele.Context) error {
 		return c.Send(helpMessage, &telebot.SendOptions{
 			ParseMode: telebot.ModeMarkdown,
 		})
@@ -191,11 +426,9 @@ func SendAnalysis(etf ETFSymbol, result *IndicatorResult) {
 	}
 
 	message := formatAnalysis(etf, result)
-	silent := result.CompositeScore < 5
 
 	_, sendErr := b.Send(tele.ChatID(num), message, &telebot.SendOptions{
-		ParseMode:           telebot.ModeMarkdown,
-		DisableNotification: silent,
+		ParseMode: telebot.ModeMarkdown,
 	})
 
 	if sendErr != nil {

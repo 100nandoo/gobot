@@ -12,15 +12,15 @@ type ETFSymbol struct {
 	Name   string
 }
 
-var ETFs = []ETFSymbol{
+var DefaultSymbols = []ETFSymbol{
 	{Ticker: "VWRA.L", Name: "Vanguard FTSE All-World"},
 	{Ticker: "CSPX.L", Name: "iShares Core S&P 500"},
 }
 
 type PriceData struct {
-	Close    []float64
-	Currency string
-	Price    float64
+	Close     []float64
+	Currency  string
+	Price     float64
 	PrevClose float64
 }
 
