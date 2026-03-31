@@ -1,9 +1,10 @@
 package antam
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
+	"strconv"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -47,38 +48,68 @@ func getGoldPricesFromHTML() (*GoldPrice, error) {
 	}, nil
 }
 
-func getPluangGoldPricesFromHTML() (*GoldPrice, error) {
-	resp, err := http.Get("https://pluang.com/widgets/price-graph/desktop-vertical")
+func getPluangGoldPrices() (*GoldPrice, error) {
+	req, err := http.NewRequest(http.MethodGet, "https://api-pluang.pluang.com/api/v3/asset/gold/pricing?daysLimit=1", nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch page: %w", err)
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:149.0) Gecko/20100101 Firefox/149.0")
+	req.Header.Set("Accept", "application/json, text/plain, */*")
+	req.Header.Set("Referer", "https://pluang.com/")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch pluang pricing: %w", err)
 	}
 	defer resp.Body.Close()
 
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse HTML: %w", err)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code from pluang api: %d", resp.StatusCode)
 	}
 
-	var sellPrice, buyPrice string
+	var payload struct {
+		StatusCode int `json:"statusCode"`
+		Data       struct {
+			Current struct {
+				Sell int64 `json:"sell"`
+				Buy  int64 `json:"buy"`
+			} `json:"current"`
+		} `json:"data"`
+	}
 
-	doc.Find(".halfwidth").Each(func(i int, s *goquery.Selection) {
-		// Find the <p> element within the current <div>
-		s.Find("p").Each(func(j int, p *goquery.Selection) {
-			text := strings.TrimSpace(p.Text())
-			// Remove the "/g" suffix from the prices
-			text = strings.ReplaceAll(text, "/g", "")
-			text = strings.ReplaceAll(text, "Rp", "")
-			if i == 0 {
-				sellPrice = text
-			} else if i == 1 {
-				buyPrice = text
-			}
-		})
-	})
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return nil, fmt.Errorf("failed to decode pluang pricing response: %w", err)
+	}
+
+	if payload.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("pluang api returned statusCode %d", payload.StatusCode)
+	}
 
 	return &GoldPrice{
-		Buy:    buyPrice,
-		Sell:   sellPrice,
+		Buy:    formatPriceIDR(payload.Data.Current.Buy),
+		Sell:   formatPriceIDR(payload.Data.Current.Sell),
 		Source: "Pluang.com",
 	}, nil
+}
+
+func formatPriceIDR(price int64) string {
+	digits := strconv.FormatInt(price, 10)
+	if len(digits) <= 3 {
+		return digits
+	}
+
+	result := make([]byte, 0, len(digits)+(len(digits)-1)/3)
+	leading := len(digits) % 3
+	if leading == 0 {
+		leading = 3
+	}
+
+	result = append(result, digits[:leading]...)
+	for i := leading; i < len(digits); i += 3 {
+		result = append(result, '.')
+		result = append(result, digits[i:i+3]...)
+	}
+
+	return string(result)
 }

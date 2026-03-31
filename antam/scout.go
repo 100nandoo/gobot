@@ -19,7 +19,7 @@ func Scouting(now bool) {
 			// 	pkg.LogWithTimestamp(fmt.Sprintf("Error fetching gold prices at %s: %v", timeStr, err))
 			// 	return
 			// }
-			pricePluang, errPluang := getPluangGoldPricesFromHTML()
+			pricePluang, errPluang := getPluangGoldPrices()
 			if errPluang != nil {
 				pkg.LogWithTimestamp("%s", fmt.Sprintf("Error fetching Pluang gold prices at %d:%d: %v", hour, minute, errPluang))
 				return
