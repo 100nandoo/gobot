@@ -3,11 +3,12 @@ package antam
 import (
 	"fmt"
 	"gobot/pkg"
+	"time"
 )
 
 /*
 Scouting
-Run every day at specified times.
+Run once a week at the specified time.
 */
 func Scouting(now bool) {
 	// Helper function to log and send price
@@ -32,7 +33,7 @@ func Scouting(now bool) {
 		if immediate {
 			execute()
 		} else {
-			pkg.EverydayOnWeekdaysAt(execute, hour, minute)
+			pkg.SpecificDayAtThisHour(execute, time.Wednesday, hour, minute)
 		}
 	}
 
@@ -40,7 +41,7 @@ func Scouting(now bool) {
 		pkg.LogWithTimestamp("Running scouting logic immediately")
 		sendGoldPriceAt(10, 05, true)
 	} else {
-		pkg.LogWithTimestamp("Scheduling scouting antam price")
+		pkg.LogWithTimestamp("Scheduling weekly scouting antam price")
 		sendGoldPriceAt(10, 05, false)
 	}
 }
