@@ -24,6 +24,8 @@ Fast stock and ETF quote lookup.
 
 *Notes:*
 - Use exact Yahoo Finance ticker symbols
+- In groups, you can send /q AAPL or a single ticker like AAPL
+- Group replies quote the triggering message
 - SAAHAM Bot is a quote-only bot`
 
 var quoteService QuoteService = YahooQuoteService{}
@@ -33,7 +35,46 @@ func allowsCommandLookup(chat *tele.Chat) bool {
 }
 
 func allowsPlainTextLookup(chat *tele.Chat) bool {
-	return chat != nil && chat.Type == tele.ChatPrivate
+	if chat == nil {
+		return false
+	}
+
+	switch chat.Type {
+	case tele.ChatPrivate, tele.ChatGroup, tele.ChatSuperGroup:
+		return true
+	default:
+		return false
+	}
+}
+
+func usesQuotedGroupReply(chat *tele.Chat) bool {
+	if chat == nil {
+		return false
+	}
+
+	switch chat.Type {
+	case tele.ChatGroup, tele.ChatSuperGroup:
+		return true
+	default:
+		return false
+	}
+}
+
+func shouldIgnoreTrigger(c tele.Context) bool {
+	sender := c.Sender()
+	return sender != nil && sender.IsBot
+}
+
+func sendQuoteMessage(c tele.Context, text string) error {
+	if usesQuotedGroupReply(c.Chat()) {
+		return c.Reply(text, &tele.SendOptions{
+			ParseMode: tele.ModeMarkdown,
+		})
+	}
+
+	return c.Send(text, &tele.SendOptions{
+		ParseMode: tele.ModeMarkdown,
+	})
 }
 
 func formatQuoteReply(result *QuoteResult) string {
@@ -77,18 +118,17 @@ func quoteCommand(c tele.Context) error {
 	if !allowsCommandLookup(c.Chat()) {
 		return nil
 	}
+	if shouldIgnoreTrigger(c) {
+		return nil
+	}
 
 	if len(c.Args()) == 0 {
-		return c.Send("Usage: `/q AAPL`", &tele.SendOptions{
-			ParseMode: tele.ModeMarkdown,
-		})
+		return sendQuoteMessage(c, "Usage: `/q AAPL`")
 	}
 
 	symbols := parseBatchCommandLookups(c.Args())
 	if len(symbols) > maxBatchSymbols {
-		return c.Send("Usage: `/q AAPL MSFT NVDA TSLA AMZN` (up to 5 symbols)", &tele.SendOptions{
-			ParseMode: tele.ModeMarkdown,
-		})
+		return sendQuoteMessage(c, "Usage: `/q AAPL MSFT NVDA TSLA AMZN` (up to 5 symbols)")
 	}
 	if len(symbols) == 1 {
 		result, err := quoteService.Lookup(symbols[0])
@@ -97,9 +137,7 @@ func quoteCommand(c tele.Context) error {
 			return sendLookupFailure(c, err)
 		}
 
-		return c.Send(formatQuoteReply(result), &tele.SendOptions{
-			ParseMode: tele.ModeMarkdown,
-		})
+		return sendQuoteMessage(c, formatQuoteReply(result))
 	}
 
 	results := lookupBatchQuotes(quoteService, symbols)
@@ -109,13 +147,14 @@ func quoteCommand(c tele.Context) error {
 		}
 	}
 
-	return c.Send(formatBatchQuoteReply(results), &tele.SendOptions{
-		ParseMode: tele.ModeMarkdown,
-	})
+	return sendQuoteMessage(c, formatBatchQuoteReply(results))
 }
 
 func plainTextQuoteLookup(c tele.Context) error {
 	if !allowsPlainTextLookup(c.Chat()) {
+		return nil
+	}
+	if shouldIgnoreTrigger(c) {
 		return nil
 	}
 
@@ -130,9 +169,7 @@ func plainTextQuoteLookup(c tele.Context) error {
 		return sendLookupFailure(c, err)
 	}
 
-	return c.Send(formatQuoteReply(result), &tele.SendOptions{
-		ParseMode: tele.ModeMarkdown,
-	})
+	return sendQuoteMessage(c, formatQuoteReply(result))
 }
 
 func sendLookupFailure(c tele.Context, err error) error {
@@ -140,13 +177,13 @@ func sendLookupFailure(c tele.Context, err error) error {
 	if errors.As(err, &lookupErr) {
 		switch lookupErr.Kind {
 		case LookupErrorInvalidSymbol:
-			return c.Send("I couldn't find that exact ticker symbol.")
+			return sendQuoteMessage(c, "I couldn't find that exact ticker symbol.")
 		case LookupErrorUnsupported:
-			return c.Send("That ticker is valid, but SAAHAM Bot currently supports only stocks and ETFs.")
+			return sendQuoteMessage(c, "That ticker is valid, but SAAHAM Bot currently supports only stocks and ETFs.")
 		}
 	}
 
-	return c.Send("Sorry, I couldn't fetch that quote right now.")
+	return sendQuoteMessage(c, "Sorry, I couldn't fetch that quote right now.")
 }
 
 func Run() {

@@ -10,11 +10,11 @@ func TestAllowsPlainTextLookup(t *testing.T) {
 	if !allowsPlainTextLookup(&tele.Chat{Type: tele.ChatPrivate}) {
 		t.Fatal("expected private chats to allow plain-text lookups")
 	}
-	if allowsPlainTextLookup(&tele.Chat{Type: tele.ChatGroup}) {
-		t.Fatal("expected group chats to reject plain-text lookups")
+	if !allowsPlainTextLookup(&tele.Chat{Type: tele.ChatGroup}) {
+		t.Fatal("expected group chats to allow plain-text lookups")
 	}
-	if allowsPlainTextLookup(&tele.Chat{Type: tele.ChatSuperGroup}) {
-		t.Fatal("expected supergroup chats to reject plain-text lookups")
+	if !allowsPlainTextLookup(&tele.Chat{Type: tele.ChatSuperGroup}) {
+		t.Fatal("expected supergroup chats to allow plain-text lookups")
 	}
 }
 

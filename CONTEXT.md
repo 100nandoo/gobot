@@ -93,12 +93,24 @@ A Go package and folder name that intentionally uses the product brand rather th
 _Avoid_: generic quote package, hidden brand boundary
 
 **Chat Scope Rule**:
-The rule that determines which lookup triggers the **Quote Bot** accepts in private chats versus group chats.
+The rule that determines which lookup triggers the **Quote Bot** accepts in private chats versus non-private chats.
 _Avoid_: identical trigger behavior everywhere
 
 **Public Group Reply**:
 The normal in-chat response the **Quote Bot** posts when an explicit group command triggers a **Quote Lookup**.
 _Avoid_: pseudo-private group response, disabled group command reply
+
+**Quoted Group Reply**:
+The reply style where the **Quote Bot** answers in a group or supergroup by replying directly to the triggering user message.
+_Avoid_: unthreaded group reply, forwarded quote
+
+**Group Ticker Token**:
+A single plain-text **Ticker Token** sent in a group or supergroup as a standalone message.
+_Avoid_: mixed prose, batch text input
+
+**Bot Author Filter**:
+The rule that the **Quote Bot** ignores trigger messages authored by Telegram bots.
+_Avoid_: bot-to-bot chatter, self-trigger
 
 **Batch Quote Request**:
 A single user request that asks the **Quote Bot** to return quotes for multiple ticker symbols.
@@ -152,8 +164,12 @@ _Avoid_: inconsistent parsing rules across code paths
 - The **Quote Bot** uses a **Long Polling Runtime**
 - The **Quote Bot** is branded as **SAAHAM Bot**
 - The **Quote Bot** uses a **Branded Code Module**
-- The **Chat Scope Rule** is: private chats accept commands and plain-text ticker tokens; group chats accept commands only
-- Explicit group quote commands produce a **Public Group Reply**
+- The **Chat Scope Rule** is: private chats accept commands and plain-text ticker tokens; groups and supergroups accept commands and one **Group Ticker Token**
+- A **Group Ticker Token** must contain exactly one **Ticker Token**
+- A **Group Ticker Token** cannot be mixed prose or plain-text batch input
+- Non-private **Quote Lookup** replies use a **Quoted Group Reply**
+- Explicit group quote commands still produce a **Public Group Reply**
+- The **Bot Author Filter** ignores bot-authored trigger messages
 - v1 supports a **Batch Quote Request**
 - The **Batch Size Limit** in v1 is 5 symbols per request
 - The **Command Batch Interface** means plain text stays single-symbol only while `/q` accepts batches
@@ -164,8 +180,8 @@ _Avoid_: inconsistent parsing rules across code paths
 
 ## Example dialogue
 
-> **Dev:** "Should this ticker lookup live in the **Finance Watchlist Bot**?"
-> **Domain expert:** "No. The **Quote Bot** is a separate bot for quick price checks, while the **Finance Watchlist Bot** is for deeper watchlist analysis."
+> **Dev:** "If someone posts `AAPL` in a group, does that count as a **Quote Lookup**?"
+> **Domain expert:** "Yes, if it is a standalone **Group Ticker Token**. The bot should answer with a **Quoted Group Reply** so the lookup stays attached to that message."
 
 ## Flagged ambiguities
 
@@ -188,8 +204,8 @@ _Avoid_: inconsistent parsing rules across code paths
 - "Telegram transport" was ambiguous between current repo conventions and extra infra — resolved: the **Quote Bot** uses a **Long Polling Runtime**
 - "`SAAHAM_BOT`" was ambiguous between typo and branding — resolved: **SAAHAM Bot** is the intentional brand spelling
 - "where branding applies" was ambiguous between product/config only and code structure too — resolved: the **Quote Bot** uses a **Branded Code Module**
-- "where plain-text lookup is allowed" was ambiguous across chat types — resolved: follow the **Chat Scope Rule**
-- "group reply visibility" was ambiguous after enabling group commands — resolved: explicit group lookups produce a **Public Group Reply**
+- "where plain-text lookup is allowed" was ambiguous across chat types — resolved: follow the **Chat Scope Rule**, which now allows one **Group Ticker Token** in groups and supergroups
+- "group reply visibility" was ambiguous after enabling group commands — resolved: non-private lookups use a **Quoted Group Reply**
 - "one vs many tickers per request" was ambiguous — resolved: v1 supports a **Batch Quote Request**
 - "how many tickers count as a quote request" was ambiguous — resolved: the **Batch Size Limit** is 5
 - "whether plain text can batch" was ambiguous after enabling multiple tickers — resolved: use the **Command Batch Interface**
@@ -197,3 +213,5 @@ _Avoid_: inconsistent parsing rules across code paths
 - "batch output ordering" was ambiguous — resolved: preserve **Input Order Reply**
 - "duplicate symbols in batch input" was ambiguous — resolved: apply **Normalized Batch Deduplication**
 - "what counts as the same symbol" was ambiguous — resolved: deduplicate using the **Lookup Normalization Pipeline**
+- "which message gets quoted in group flows" was ambiguous — resolved: the **Quoted Group Reply** quotes the actual trigger message, not an older parent message
+- "whether bot-authored group triggers should count" was ambiguous — resolved: apply the **Bot Author Filter**

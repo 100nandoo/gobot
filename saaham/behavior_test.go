@@ -31,15 +31,28 @@ func TestCommandBatchBehaviorRemainsCommandOnly(t *testing.T) {
 func TestChatScopeRules(t *testing.T) {
 	privateChat := &tele.Chat{Type: tele.ChatPrivate}
 	groupChat := &tele.Chat{Type: tele.ChatGroup}
+	supergroupChat := &tele.Chat{Type: tele.ChatSuperGroup}
 
 	if !allowsPlainTextLookup(privateChat) {
 		t.Fatal("expected private chats to allow plain-text lookup triggers")
 	}
-	if allowsPlainTextLookup(groupChat) {
-		t.Fatal("expected group chats to reject plain-text lookup triggers")
+	if !allowsPlainTextLookup(groupChat) {
+		t.Fatal("expected group chats to allow plain-text lookup triggers")
+	}
+	if !allowsPlainTextLookup(supergroupChat) {
+		t.Fatal("expected supergroup chats to allow plain-text lookup triggers")
 	}
 	if !allowsCommandLookup(groupChat) {
 		t.Fatal("expected group chats to allow explicit /q commands")
+	}
+	if !usesQuotedGroupReply(groupChat) {
+		t.Fatal("expected group chats to use quoted replies")
+	}
+	if !usesQuotedGroupReply(supergroupChat) {
+		t.Fatal("expected supergroup chats to use quoted replies")
+	}
+	if usesQuotedGroupReply(privateChat) {
+		t.Fatal("expected private chats to avoid quoted replies")
 	}
 }
 
