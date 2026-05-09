@@ -77,6 +77,27 @@ func TestLookupQuoteUsesShortcutFallbackOrder(t *testing.T) {
 	}
 }
 
+func TestLookupQuoteUsesBareFallbackForNonSP100Symbols(t *testing.T) {
+	service := stubQuoteService{
+		results: map[string]*QuoteResult{
+			"SNDK": {Symbol: "SNDK", InstrumentName: "Sandisk Corp."},
+		},
+		errors: map[string]error{
+			"^SNDK":   &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "^SNDK"},
+			"SNDK.L":  &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "SNDK.L"},
+			"SNDK.JK": &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "SNDK.JK"},
+		},
+	}
+
+	result, err := lookupQuote(service, "SNDK", map[string]cachedLookupResult{})
+	if err != nil {
+		t.Fatalf("expected bare fallback success, got %v", err)
+	}
+	if result == nil || result.Symbol != "SNDK" {
+		t.Fatalf("expected SNDK result, got %#v", result)
+	}
+}
+
 func TestLookupQuoteUsesBareFirstForSP100Members(t *testing.T) {
 	service := stubQuoteService{
 		results: map[string]*QuoteResult{

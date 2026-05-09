@@ -184,7 +184,7 @@ _Avoid_: live constituent lookup, fuzzy US-large-cap guess
 - A **Ticker Alias** resolves before the **Shortcut Expansion Rule**
 - A non-aliased suffixless input in the **S&P 100 Snapshot** tries the bare Yahoo symbol before the **Shortcut Expansion Rule**
 - A **Market Shortcut Lookup** uses the **Shortcut Expansion Rule**
-- The **Shortcut Expansion Rule** tries the `^`-prefixed index form first, then `.L`, then `.JK`
+- The **Shortcut Expansion Rule** tries the `^`-prefixed index form first, then `.L`, then `.JK`, then the bare Yahoo symbol
 - A **Supported Exchange Suffix** in v1 is limited to `.JK` and `.L`
 - `IHSG` is a **Ticker Alias** for `^JKSE`
 - The **S&P 100 Snapshot** is a checked-in manual file maintained by the developer

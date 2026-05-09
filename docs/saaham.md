@@ -35,7 +35,7 @@ It is separate from the finance watchlist bot: SAAHAM does ad hoc quote lookups,
 - Explicit aliases such as `IHSG -> ^JKSE` run before generic suffixless lookup rules
 - Inputs that already contain `^` or `.` skip shortcut expansion
 - S&P 100 snapshot members such as `AAPL` try the bare symbol first, then `^SYMBOL`, then `.L`, then `.JK`
-- Other suffixless inputs use shortcut-first lookup order: `^SYMBOL`, then `.L`, then `.JK`
+- Other suffixless inputs use shortcut-first lookup order: `^SYMBOL`, then `.L`, then `.JK`, then bare `SYMBOL`
 
 ## Supported instruments
 

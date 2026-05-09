@@ -102,6 +102,7 @@ func resolveTickerCandidates(symbol string) []string {
 		"^" + symbol,
 		symbol + ".L",
 		symbol + ".JK",
+		symbol,
 	}
 }
 
