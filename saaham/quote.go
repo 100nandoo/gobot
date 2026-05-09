@@ -27,13 +27,13 @@ type YahooQuoteService struct{}
 func (s YahooQuoteService) Lookup(symbol string) (*QuoteResult, error) {
 	t, err := ticker.New(symbol)
 	if err != nil {
-		return nil, fmt.Errorf("create ticker: %w", err)
+		return nil, classifyLookupError(symbol, fmt.Errorf("create ticker: %w", err))
 	}
 	defer t.Close()
 
 	quote, err := t.Quote()
 	if err != nil {
-		return nil, fmt.Errorf("fetch quote: %w", err)
+		return nil, classifyLookupError(symbol, fmt.Errorf("fetch quote: %w", err))
 	}
 
 	return quoteResultFromYahoo(quote), nil

@@ -1,10 +1,10 @@
 package saaham
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"time"
 
 	"gobot/config"
@@ -40,29 +40,56 @@ func formatQuoteReply(result *QuoteResult) string {
 }
 
 func quoteCommand(c tele.Context) error {
-	args := c.Args()
-	if len(args) != 1 {
+	symbol, err := parseCommandLookup(c.Args())
+	if len(c.Args()) == 0 {
 		return c.Send("Usage: `/q AAPL`", &tele.SendOptions{
 			ParseMode: tele.ModeMarkdown,
 		})
 	}
-
-	symbol := strings.TrimSpace(args[0])
-	if symbol == "" {
-		return c.Send("Usage: `/q AAPL`", &tele.SendOptions{
-			ParseMode: tele.ModeMarkdown,
-		})
+	if err != nil {
+		return c.Send("I couldn't find that exact ticker symbol.")
 	}
 
 	result, err := quoteService.Lookup(symbol)
 	if err != nil {
 		pkg.LogWithTimestamp("SAAHAM quote lookup failed for %s: %v", symbol, err)
-		return c.Send("Sorry, I couldn't fetch that quote right now.")
+		return sendLookupFailure(c, err)
 	}
 
 	return c.Send(formatQuoteReply(result), &tele.SendOptions{
 		ParseMode: tele.ModeMarkdown,
 	})
+}
+
+func plainTextQuoteLookup(c tele.Context) error {
+	chat := c.Chat()
+	if chat == nil || chat.Type != tele.ChatPrivate {
+		return nil
+	}
+
+	symbol, ok := parsePlainTextLookup(c.Text())
+	if !ok {
+		return nil
+	}
+
+	result, err := quoteService.Lookup(symbol)
+	if err != nil {
+		pkg.LogWithTimestamp("SAAHAM plain-text quote lookup failed for %s: %v", symbol, err)
+		return sendLookupFailure(c, err)
+	}
+
+	return c.Send(formatQuoteReply(result), &tele.SendOptions{
+		ParseMode: tele.ModeMarkdown,
+	})
+}
+
+func sendLookupFailure(c tele.Context, err error) error {
+	var lookupErr *LookupError
+	if errors.As(err, &lookupErr) && lookupErr.Kind == LookupErrorInvalidSymbol {
+		return c.Send("I couldn't find that exact ticker symbol.")
+	}
+
+	return c.Send("Sorry, I couldn't fetch that quote right now.")
 }
 
 func Run() {
@@ -88,6 +115,7 @@ func Run() {
 	bot.Handle("/q", quoteCommand)
 	bot.Handle("/help", helpHandler)
 	bot.Handle("/start", helpHandler)
+	bot.Handle(tele.OnText, plainTextQuoteLookup)
 
 	bot.Start()
 }
