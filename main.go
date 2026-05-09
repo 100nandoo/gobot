@@ -6,6 +6,7 @@ import (
 	"gobot/freegames"
 	"gobot/pkg"
 	"gobot/reddit"
+	"gobot/saaham"
 	"gobot/spotifytube"
 )
 
@@ -23,6 +24,7 @@ func main() {
 	go antam.Run()
 	go spotifytube.Run()
 	go finance.Run()
+	go saaham.Run()
 
 	pkg.StartBlocking()
 }
