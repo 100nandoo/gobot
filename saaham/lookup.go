@@ -12,6 +12,7 @@ type LookupErrorKind string
 
 const (
 	LookupErrorInvalidSymbol  LookupErrorKind = "invalid_symbol"
+	LookupErrorUnsupported    LookupErrorKind = "unsupported_instrument"
 	LookupErrorProviderFailed LookupErrorKind = "provider_failure"
 )
 

@@ -85,8 +85,13 @@ func plainTextQuoteLookup(c tele.Context) error {
 
 func sendLookupFailure(c tele.Context, err error) error {
 	var lookupErr *LookupError
-	if errors.As(err, &lookupErr) && lookupErr.Kind == LookupErrorInvalidSymbol {
-		return c.Send("I couldn't find that exact ticker symbol.")
+	if errors.As(err, &lookupErr) {
+		switch lookupErr.Kind {
+		case LookupErrorInvalidSymbol:
+			return c.Send("I couldn't find that exact ticker symbol.")
+		case LookupErrorUnsupported:
+			return c.Send("That ticker is valid, but SAAHAM Bot currently supports only stocks and ETFs.")
+		}
 	}
 
 	return c.Send("Sorry, I couldn't fetch that quote right now.")

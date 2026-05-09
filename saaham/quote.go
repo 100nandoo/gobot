@@ -35,8 +35,23 @@ func (s YahooQuoteService) Lookup(symbol string) (*QuoteResult, error) {
 	if err != nil {
 		return nil, classifyLookupError(symbol, fmt.Errorf("fetch quote: %w", err))
 	}
+	if !isSupportedInstrumentType(quote.QuoteType) {
+		return nil, &LookupError{
+			Kind:   LookupErrorUnsupported,
+			Symbol: strings.ToUpper(strings.TrimSpace(quote.Symbol)),
+		}
+	}
 
 	return quoteResultFromYahoo(quote), nil
+}
+
+func isSupportedInstrumentType(quoteType string) bool {
+	switch strings.ToUpper(strings.TrimSpace(quoteType)) {
+	case "EQUITY", "ETF":
+		return true
+	default:
+		return false
+	}
 }
 
 func quoteResultFromYahoo(quote *models.Quote) *QuoteResult {
