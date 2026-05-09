@@ -27,6 +27,14 @@ Fast stock and ETF quote lookup.
 
 var quoteService QuoteService = YahooQuoteService{}
 
+func allowsCommandLookup(chat *tele.Chat) bool {
+	return chat != nil
+}
+
+func allowsPlainTextLookup(chat *tele.Chat) bool {
+	return chat != nil && chat.Type == tele.ChatPrivate
+}
+
 func formatQuoteReply(result *QuoteResult) string {
 	return fmt.Sprintf(
 		"*%s* - %s\n`%.2f %s` `%+.2f (%+.2f%%)`",
@@ -40,6 +48,10 @@ func formatQuoteReply(result *QuoteResult) string {
 }
 
 func quoteCommand(c tele.Context) error {
+	if !allowsCommandLookup(c.Chat()) {
+		return nil
+	}
+
 	symbol, err := parseCommandLookup(c.Args())
 	if len(c.Args()) == 0 {
 		return c.Send("Usage: `/q AAPL`", &tele.SendOptions{
@@ -62,8 +74,7 @@ func quoteCommand(c tele.Context) error {
 }
 
 func plainTextQuoteLookup(c tele.Context) error {
-	chat := c.Chat()
-	if chat == nil || chat.Type != tele.ChatPrivate {
+	if !allowsPlainTextLookup(c.Chat()) {
 		return nil
 	}
 
