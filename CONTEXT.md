@@ -73,7 +73,7 @@ The bot response format that shows the normalized ticker symbol actually used fo
 _Avoid_: raw user input echo
 
 **Instrument Name**:
-The provider-sourced human-readable stock or ETF name shown alongside a successful quote.
+The provider-sourced human-readable instrument name shown alongside a successful quote.
 _Avoid_: user-supplied label, guessed description
 
 **Stateless Quote Bot**:

@@ -16,7 +16,7 @@ Each module focuses on a distinct domain, while the repo reuses common integrati
 ## Runtime modules in this repo
 
 - `finance`: configurable watchlist analysis and scheduled scout alerts
-- `saaham`: exact-symbol stock and ETF quote lookup bot
+- `saaham`: quote lookup bot for stocks, ETFs, indices, and supported market shortcuts
 - `spotifytube`: Spotify and YouTube link conversion bot
 - `freegames`: Reddit-driven free game scout for Telegram channels
 - `antam`: gold price bot and scheduled gold price sender
