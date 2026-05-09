@@ -21,11 +21,11 @@ The canonical Yahoo Finance symbol the **Quote Bot** ultimately uses for a **Quo
 _Avoid_: company name, fuzzy match, raw user input
 
 **Market Shortcut Lookup**:
-A **Quote Lookup** that starts from a bare user-entered token and expands it through deterministic symbol candidates before failing.
+A **Quote Lookup** that starts from a bare user-entered token and expands it through deterministic symbol candidates before failing when the token is not handled as a bare-first S&P 100 snapshot member.
 _Avoid_: fuzzy search, company-name lookup, curated one-off alias
 
 **Shortcut Expansion Rule**:
-The ordered expansion rule for a **Market Shortcut Lookup**: try the bare symbol first, then the supported market-specific forms.
+The ordered expansion rule for a non-aliased suffixless **Market Shortcut Lookup** outside the **S&P 100 Snapshot**: try the index form first, then the supported market-specific forms, without trying the bare symbol.
 _Avoid_: arbitrary provider search, heuristic matching
 
 **Supported Exchange Suffix**:
@@ -89,7 +89,7 @@ The explicit Telegram command that triggers a **Quote Lookup**.
 _Avoid_: generic finance command, stock-only command
 
 **Supported Instrument**:
-An asset the **Quote Bot** is willing to quote in v1 based on provider-reported instrument type.
+An asset the **Quote Bot** is willing to quote in v1 based on provider-reported instrument type, including stocks, ETFs, and indices.
 _Avoid_: any quoteable symbol, unsupported asset
 
 **Unsupported Instrument Response**:
@@ -168,6 +168,10 @@ _Avoid_: repeated quote blocks, duplicate upstream lookup
 The ordered normalization steps applied before symbol deduplication, lookup, and reply formatting.
 _Avoid_: inconsistent parsing rules across code paths
 
+**S&P 100 Snapshot**:
+A checked-in manual snapshot of S&P 100 component ticker symbols that determines which bare ticker inputs should try the unsuffixed Yahoo symbol before shortcut expansion.
+_Avoid_: live constituent lookup, fuzzy US-large-cap guess
+
 ## Relationships
 
 - A **Quote Bot** can share market data providers with the **Finance Watchlist Bot**
@@ -178,10 +182,12 @@ _Avoid_: inconsistent parsing rules across code paths
 - A **Quote Lookup** may start as a **Market Shortcut Lookup** instead of a verbatim canonical symbol
 - Every **Lookup Trigger** uses **Shared Shortcut Expansion**
 - A **Ticker Alias** resolves before the **Shortcut Expansion Rule**
+- A non-aliased suffixless input in the **S&P 100 Snapshot** tries the bare Yahoo symbol before the **Shortcut Expansion Rule**
 - A **Market Shortcut Lookup** uses the **Shortcut Expansion Rule**
-- The **Shortcut Expansion Rule** tries the bare symbol first, then `^`-prefixed index form, then `.L`, then `.JK`
+- The **Shortcut Expansion Rule** tries the `^`-prefixed index form first, then `.L`, then `.JK`
 - A **Supported Exchange Suffix** in v1 is limited to `.JK` and `.L`
 - `IHSG` is a **Ticker Alias** for `^JKSE`
+- The **S&P 100 Snapshot** is a checked-in manual file maintained by the developer
 - Shortcut expansion runs only for inputs that do not already contain `^` or `.`
 - A **Market Shortcut Lookup** uses the **Candidate Chain Failure Rule**
 - The **Candidate Chain Failure Rule** keeps trying later candidates after an unsupported instrument result
@@ -196,7 +202,7 @@ _Avoid_: inconsistent parsing rules across code paths
 - v1 is a **Stateless Quote Bot**
 - The **Quote Bot** uses a **Dedicated Bot Identity**
 - The canonical **Quote Command** in v1 is `/q`
-- A **Supported Instrument** in v1 must be reported by the provider as `EQUITY` or `ETF`
+- A **Supported Instrument** in v1 must be reported by the provider as `EQUITY`, `ETF`, or `INDEX`
 - An **Unsupported Instrument Response** explains when a valid symbol is outside the supported instrument scope
 - The **Quote Bot** runs inside the **Shared Gobot Runtime**
 - v1 uses a **Generic Quote Interface**
@@ -230,7 +236,7 @@ _Avoid_: inconsistent parsing rules across code paths
 - "new telegram bot" was ambiguous between extending the **Finance Watchlist Bot** and creating a separate **Quote Bot** — resolved: create a separate **Quote Bot**
 - "check stock/etf ticker price" was ambiguous between exact lookup and symbol discovery — resolved: v1 uses **Exact Ticker Symbol** only; fuzzy lookup is deferred
 - "suffixless ticker input" was ambiguous between verbatim-only lookup and deterministic symbol expansion — resolved: v1 supports **Market Shortcut Lookup** through the **Shortcut Expansion Rule**
-- "expansion precedence" was ambiguous when several candidate symbols could be valid — resolved: the **Shortcut Expansion Rule** tries bare symbol, then `^`-prefixed index form, then `.L`, then `.JK`
+- "expansion precedence" was ambiguous when several candidate symbols could be valid — resolved: aliases win first; **S&P 100 Snapshot** members try the bare symbol before fallback; other suffixless inputs use the **Shortcut Expansion Rule** with `^`-prefixed index form first, then `.L`, then `.JK`
 - "where shortcut expansion applies" was ambiguous across command and plain-text flows — resolved: use **Shared Shortcut Expansion** for every **Lookup Trigger**
 - "IHSG" was ambiguous between generic expansion and an index-specific shortcut — resolved: `IHSG` is a **Ticker Alias** for `^JKSE`
 - "when shortcut expansion runs" was ambiguous for already-canonical inputs — resolved: skip expansion for inputs that already contain `^` or `.`
@@ -249,7 +255,7 @@ _Avoid_: inconsistent parsing rules across code paths
 - "new bot scope" was ambiguous about storage and user state — resolved: v1 is a **Stateless Quote Bot**
 - "separate bot" was ambiguous between module split and Telegram identity split — resolved: the **Quote Bot** uses a **Dedicated Bot Identity**
 - "explicit command name" was ambiguous across several finance terms — resolved: the canonical **Quote Command** is `/q`
-- "stocks and ETFs" was ambiguous between product language and runtime enforcement — resolved: a **Supported Instrument** must be provider-typed as `EQUITY` or `ETF`
+- "stocks and ETFs" was ambiguous between product language and runtime enforcement — resolved: a **Supported Instrument** must be provider-typed as `EQUITY`, `ETF`, or `INDEX`
 - "valid but unsupported symbol" was ambiguous with bad ticker input — resolved: use a separate **Unsupported Instrument Response**
 - "separate bot" was ambiguous between product identity and deployable shape — resolved: the **Quote Bot** runs in the **Shared Gobot Runtime**
 - "command surface" was ambiguous between generic lookup and curated shortcuts — resolved: v1 uses a **Generic Quote Interface**

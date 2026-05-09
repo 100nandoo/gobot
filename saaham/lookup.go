@@ -89,8 +89,16 @@ func resolveTickerCandidates(symbol string) []string {
 		return []string{symbol}
 	}
 
+	if sp100Snapshot.Contains(symbol) {
+		return []string{
+			symbol,
+			"^" + symbol,
+			symbol + ".L",
+			symbol + ".JK",
+		}
+	}
+
 	return []string{
-		symbol,
 		"^" + symbol,
 		symbol + ".L",
 		symbol + ".JK",

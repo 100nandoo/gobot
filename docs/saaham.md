@@ -7,12 +7,13 @@ It is separate from the finance watchlist bot: SAAHAM does ad hoc quote lookups,
 
 ## What it does
 
-- Returns the latest quote for one stock or ETF
+- Returns the latest quote for one stock, ETF, or index
 - Accepts `/q` command lookups in private chats and groups
-- Accepts plain-text ticker lookups in private chats only
+- Accepts plain-text ticker lookups in private chats and groups
 - Supports batch lookups through `/q` for up to `5` symbols
 - Normalizes ticker input and deduplicates repeated symbols in batch requests after canonical symbol resolution
 - Expands supported shortcuts such as `STI -> ^STI`, `JKSE -> ^JKSE`, `IHSG -> ^JKSE`, `VWRA -> VWRA.L`, `CSPX -> CSPX.L`, and `BJBR -> BJBR.JK`
+- Uses a checked-in manual S&P 100 snapshot so symbols such as `AAPL` keep bare-symbol-first lookup
 
 ## Commands
 
@@ -31,8 +32,10 @@ It is separate from the finance watchlist bot: SAAHAM does ad hoc quote lookups,
 - Plain-text mixed prose is ignored
 - `$AAPL` is rejected; use ticker inputs without the `$` prefix
 - Wrapper punctuation such as `(AAPL)` is stripped before lookup
-- Shortcut expansion runs only for inputs that do not already contain `^` or `.`
-- Shortcut lookup order is bare symbol, then `^SYMBOL`, then `.L`, then `.JK`
+- Explicit aliases such as `IHSG -> ^JKSE` run before generic suffixless lookup rules
+- Inputs that already contain `^` or `.` skip shortcut expansion
+- S&P 100 snapshot members such as `AAPL` try the bare symbol first, then `^SYMBOL`, then `.L`, then `.JK`
+- Other suffixless inputs use shortcut-first lookup order: `^SYMBOL`, then `.L`, then `.JK`
 
 ## Supported instruments
 
@@ -40,6 +43,7 @@ SAAHAM Bot currently supports provider-classified:
 
 - `EQUITY`
 - `ETF`
+- `INDEX`
 
 If the symbol is valid but outside that scope, the bot replies that the instrument is unsupported.
 
@@ -59,6 +63,7 @@ Batch lookups return per-symbol results, so one failure does not block the rest 
 - It uses long polling through `telebot.v3`
 - It is stateless: there is no watchlist, settings store, or lookup history
 - Quote replies show the canonical symbol, instrument name, current price, currency, and daily change
+- The S&P 100 snapshot is a manual checked-in file; runtime does not fetch constituents live
 
 ## Setup
 

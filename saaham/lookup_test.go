@@ -37,7 +37,8 @@ func TestResolveTickerCandidates(t *testing.T) {
 		symbol string
 		want   []string
 	}{
-		{name: "bare symbol expands through market candidates", symbol: "CSPX", want: []string{"CSPX", "^CSPX", "CSPX.L", "CSPX.JK"}},
+		{name: "s&p 100 member keeps bare symbol first", symbol: "AAPL", want: []string{"AAPL", "^AAPL", "AAPL.L", "AAPL.JK"}},
+		{name: "non-member uses shortcut-first order", symbol: "CSPX", want: []string{"^CSPX", "CSPX.L", "CSPX.JK"}},
 		{name: "canonical symbol skips expansion", symbol: "VWRA.L", want: []string{"VWRA.L"}},
 		{name: "index symbol skips expansion", symbol: "^STI", want: []string{"^STI"}},
 		{name: "alias resolves before expansion", symbol: "IHSG", want: []string{"^JKSE"}},

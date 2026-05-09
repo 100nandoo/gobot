@@ -16,7 +16,7 @@ import (
 
 const helpMessage = `SAAHAM Bot
 
-Fast stock and ETF quote lookup.
+Fast stock, ETF, and index quote lookup.
 
 *Commands:*
 - /q AAPL - Get the latest quote for one symbol
@@ -182,7 +182,7 @@ func sendLookupFailure(c tele.Context, err error) error {
 		case LookupErrorInvalidSymbol:
 			return sendQuoteMessage(c, "I couldn't find that exact ticker symbol.")
 		case LookupErrorUnsupported:
-			return sendQuoteMessage(c, "That ticker is valid, but SAAHAM Bot currently supports only stocks and ETFs.")
+			return sendQuoteMessage(c, "That ticker is valid, but SAAHAM Bot currently supports only stocks, ETFs, and indices.")
 		}
 	}
 

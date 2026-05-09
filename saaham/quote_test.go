@@ -46,6 +46,7 @@ func TestIsSupportedInstrumentType(t *testing.T) {
 	}{
 		{quoteType: "EQUITY", want: true},
 		{quoteType: "ETF", want: true},
+		{quoteType: "INDEX", want: true},
 		{quoteType: "MUTUALFUND", want: false},
 		{quoteType: "CRYPTOCURRENCY", want: false},
 		{quoteType: "", want: false},

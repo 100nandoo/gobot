@@ -63,7 +63,6 @@ func TestLookupQuoteUsesShortcutFallbackOrder(t *testing.T) {
 			"CSPX.L": {Symbol: "CSPX.L", InstrumentName: "iShares Core S&P 500 UCITS ETF"},
 		},
 		errors: map[string]error{
-			"CSPX":    &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "CSPX"},
 			"^CSPX":   &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "^CSPX"},
 			"CSPX.JK": &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "CSPX.JK"},
 		},
@@ -75,6 +74,27 @@ func TestLookupQuoteUsesShortcutFallbackOrder(t *testing.T) {
 	}
 	if result == nil || result.Symbol != "CSPX.L" {
 		t.Fatalf("expected CSPX.L result, got %#v", result)
+	}
+}
+
+func TestLookupQuoteUsesBareFirstForSP100Members(t *testing.T) {
+	service := stubQuoteService{
+		results: map[string]*QuoteResult{
+			"AAPL": {Symbol: "AAPL", InstrumentName: "Apple Inc."},
+		},
+		errors: map[string]error{
+			"^AAPL":   &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "^AAPL"},
+			"AAPL.L":  &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "AAPL.L"},
+			"AAPL.JK": &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "AAPL.JK"},
+		},
+	}
+
+	result, err := lookupQuote(service, "AAPL", map[string]cachedLookupResult{})
+	if err != nil {
+		t.Fatalf("expected bare symbol success, got %v", err)
+	}
+	if result == nil || result.Symbol != "AAPL" {
+		t.Fatalf("expected AAPL result, got %#v", result)
 	}
 }
 
@@ -107,7 +127,6 @@ func TestLookupBatchQuotesDeduplicatesResolvedCanonicalSymbols(t *testing.T) {
 		},
 		errors: map[string]error{
 			"STI":     &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "STI"},
-			"CSPX":    &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "CSPX"},
 			"^CSPX":   &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "^CSPX"},
 			"CSPX.JK": &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "CSPX.JK"},
 		},
