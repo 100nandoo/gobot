@@ -1,10 +1,10 @@
 package finance
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
-	"time"
+
+	"github.com/wnjoon/go-yfinance/pkg/models"
+	"github.com/wnjoon/go-yfinance/pkg/ticker"
 )
 
 type ETFSymbol struct {
@@ -24,87 +24,50 @@ type PriceData struct {
 	PrevClose float64
 }
 
-type yahooChartResponse struct {
-	Chart struct {
-		Result []struct {
-			Meta struct {
-				Currency           string  `json:"currency"`
-				RegularMarketPrice float64 `json:"regularMarketPrice"`
-				PreviousClose      float64 `json:"previousClose"`
-			} `json:"meta"`
-			Indicators struct {
-				Quote []struct {
-					Close []any `json:"close"`
-				} `json:"quote"`
-			} `json:"indicators"`
-		} `json:"result"`
-		Error *struct {
-			Code        string `json:"code"`
-			Description string `json:"description"`
-		} `json:"error"`
-	} `json:"chart"`
-}
-
 func fetchPriceData(symbol string) (*PriceData, error) {
-	url := fmt.Sprintf("https://query1.finance.yahoo.com/v8/finance/chart/%s?range=1y&interval=1d", symbol)
-
-	req, err := http.NewRequest("GET", url, nil)
+	t, err := ticker.New(symbol)
 	if err != nil {
-		return nil, fmt.Errorf("creating request: %w", err)
+		return nil, fmt.Errorf("creating ticker for %s: %w", symbol, err)
 	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)")
+	defer t.Close()
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	quote, err := t.Quote()
 	if err != nil {
-		return nil, fmt.Errorf("fetching %s: %w", symbol, err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("yahoo finance returned status %d for %s", resp.StatusCode, symbol)
+		return nil, fmt.Errorf("fetching quote for %s: %w", symbol, err)
 	}
 
-	var chart yahooChartResponse
-	if err := json.NewDecoder(resp.Body).Decode(&chart); err != nil {
-		return nil, fmt.Errorf("decoding response for %s: %w", symbol, err)
+	bars, err := t.History(models.HistoryParams{
+		Period:     "1y",
+		Interval:   "1d",
+		AutoAdjust: false,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("fetching history for %s: %w", symbol, err)
 	}
 
-	if chart.Chart.Error != nil {
-		return nil, fmt.Errorf("yahoo finance error for %s: %s", symbol, chart.Chart.Error.Description)
-	}
-
-	if len(chart.Chart.Result) == 0 || len(chart.Chart.Result[0].Indicators.Quote) == 0 {
-		return nil, fmt.Errorf("no data returned for %s", symbol)
-	}
-
-	result := chart.Chart.Result[0]
-	rawClose := result.Indicators.Quote[0].Close
-
-	var closes []float64
-	for _, v := range rawClose {
-		if v == nil {
+	closes := make([]float64, 0, len(bars))
+	for _, bar := range bars {
+		if bar.Close == 0 {
 			continue
 		}
-		switch val := v.(type) {
-		case float64:
-			closes = append(closes, val)
-		case json.Number:
-			f, err := val.Float64()
-			if err == nil {
-				closes = append(closes, f)
-			}
-		}
+		closes = append(closes, bar.Close)
 	}
 
 	if len(closes) < 200 {
 		return nil, fmt.Errorf("insufficient price data for %s: got %d days, need at least 200", symbol, len(closes))
 	}
 
+	currency := quote.Currency
+	if currency == "" {
+		if meta := t.GetHistoryMetadata(); meta != nil {
+			currency = meta.Currency
+		}
+	}
+
 	return &PriceData{
 		Close:     closes,
-		Currency:  result.Meta.Currency,
-		Price:     result.Meta.RegularMarketPrice,
-		PrevClose: result.Meta.PreviousClose,
+		Currency:  currency,
+		Price:     quote.RegularMarketPrice,
+		PrevClose: quote.RegularMarketPreviousClose,
 	}, nil
 }
