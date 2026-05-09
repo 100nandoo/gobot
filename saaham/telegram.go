@@ -1,11 +1,14 @@
 package saaham
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"gobot/config"
+	"gobot/pkg"
 
 	tele "gopkg.in/telebot.v3"
 )
@@ -22,6 +25,46 @@ Fast stock and ETF quote lookup.
 - Use exact Yahoo Finance ticker symbols
 - SAAHAM Bot is a quote-only bot`
 
+var quoteService QuoteService = YahooQuoteService{}
+
+func formatQuoteReply(result *QuoteResult) string {
+	return fmt.Sprintf(
+		"*%s* - %s\n`%.2f %s` `%+.2f (%+.2f%%)`",
+		result.Symbol,
+		result.InstrumentName,
+		result.Price,
+		result.Currency,
+		result.Change,
+		result.ChangePercent,
+	)
+}
+
+func quoteCommand(c tele.Context) error {
+	args := c.Args()
+	if len(args) != 1 {
+		return c.Send("Usage: `/q AAPL`", &tele.SendOptions{
+			ParseMode: tele.ModeMarkdown,
+		})
+	}
+
+	symbol := strings.TrimSpace(args[0])
+	if symbol == "" {
+		return c.Send("Usage: `/q AAPL`", &tele.SendOptions{
+			ParseMode: tele.ModeMarkdown,
+		})
+	}
+
+	result, err := quoteService.Lookup(symbol)
+	if err != nil {
+		pkg.LogWithTimestamp("SAAHAM quote lookup failed for %s: %v", symbol, err)
+		return c.Send("Sorry, I couldn't fetch that quote right now.")
+	}
+
+	return c.Send(formatQuoteReply(result), &tele.SendOptions{
+		ParseMode: tele.ModeMarkdown,
+	})
+}
+
 func Run() {
 	pref := tele.Settings{
 		Token:  os.Getenv(config.SaahamBot),
@@ -34,12 +77,15 @@ func Run() {
 		return
 	}
 
+	pkg.LogWithTimestamp("SAAHAM bot started, listening for commands...")
+
 	helpHandler := func(c tele.Context) error {
 		return c.Send(helpMessage, &tele.SendOptions{
 			ParseMode: tele.ModeMarkdown,
 		})
 	}
 
+	bot.Handle("/q", quoteCommand)
 	bot.Handle("/help", helpHandler)
 	bot.Handle("/start", helpHandler)
 
