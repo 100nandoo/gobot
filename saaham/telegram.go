@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"gobot/config"
@@ -47,28 +48,63 @@ func formatQuoteReply(result *QuoteResult) string {
 	)
 }
 
+func formatBatchQuoteReply(results []BatchQuoteResult) string {
+	blocks := make([]string, 0, len(results))
+	for _, item := range results {
+		if item.Err != nil {
+			blocks = append(blocks, formatBatchLookupFailure(item.Query, item.Err))
+			continue
+		}
+		blocks = append(blocks, formatQuoteReply(item.Result))
+	}
+
+	return strings.Join(blocks, "\n\n")
+}
+
+func formatBatchLookupFailure(symbol string, err error) string {
+	var lookupErr *LookupError
+	switch {
+	case errors.As(err, &lookupErr) && lookupErr.Kind == LookupErrorInvalidSymbol:
+		return fmt.Sprintf("*%s* - invalid symbol", symbol)
+	case errors.As(err, &lookupErr) && lookupErr.Kind == LookupErrorUnsupported:
+		return fmt.Sprintf("*%s* - unsupported instrument", symbol)
+	default:
+		return fmt.Sprintf("*%s* - provider failure", symbol)
+	}
+}
+
 func quoteCommand(c tele.Context) error {
 	if !allowsCommandLookup(c.Chat()) {
 		return nil
 	}
 
-	symbol, err := parseCommandLookup(c.Args())
 	if len(c.Args()) == 0 {
 		return c.Send("Usage: `/q AAPL`", &tele.SendOptions{
 			ParseMode: tele.ModeMarkdown,
 		})
 	}
-	if err != nil {
-		return c.Send("I couldn't find that exact ticker symbol.")
+
+	symbols := parseBatchCommandLookups(c.Args())
+	if len(symbols) == 1 {
+		result, err := quoteService.Lookup(symbols[0])
+		if err != nil {
+			pkg.LogWithTimestamp("SAAHAM quote lookup failed for %s: %v", symbols[0], err)
+			return sendLookupFailure(c, err)
+		}
+
+		return c.Send(formatQuoteReply(result), &tele.SendOptions{
+			ParseMode: tele.ModeMarkdown,
+		})
 	}
 
-	result, err := quoteService.Lookup(symbol)
-	if err != nil {
-		pkg.LogWithTimestamp("SAAHAM quote lookup failed for %s: %v", symbol, err)
-		return sendLookupFailure(c, err)
+	results := lookupBatchQuotes(quoteService, symbols)
+	for _, item := range results {
+		if item.Err != nil {
+			pkg.LogWithTimestamp("SAAHAM batch quote lookup failed for %s: %v", item.Query, item.Err)
+		}
 	}
 
-	return c.Send(formatQuoteReply(result), &tele.SendOptions{
+	return c.Send(formatBatchQuoteReply(results), &tele.SendOptions{
 		ParseMode: tele.ModeMarkdown,
 	})
 }
