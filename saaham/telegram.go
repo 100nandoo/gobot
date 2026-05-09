@@ -85,6 +85,11 @@ func quoteCommand(c tele.Context) error {
 	}
 
 	symbols := parseBatchCommandLookups(c.Args())
+	if len(symbols) > maxBatchSymbols {
+		return c.Send("Usage: `/q AAPL MSFT NVDA TSLA AMZN` (up to 5 symbols)", &tele.SendOptions{
+			ParseMode: tele.ModeMarkdown,
+		})
+	}
 	if len(symbols) == 1 {
 		result, err := quoteService.Lookup(symbols[0])
 		if err != nil {

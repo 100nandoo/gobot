@@ -2,6 +2,8 @@ package saaham
 
 import "strings"
 
+const maxBatchSymbols = 5
+
 type BatchQuoteResult struct {
 	Query  string
 	Result *QuoteResult
@@ -10,14 +12,24 @@ type BatchQuoteResult struct {
 
 func parseBatchCommandLookups(args []string) []string {
 	symbols := make([]string, 0, len(args))
+	seen := make(map[string]struct{}, len(args))
 	for _, arg := range args {
 		symbol, ok := normalizeTickerToken(arg)
 		if ok {
+			if _, exists := seen[symbol]; exists {
+				continue
+			}
+			seen[symbol] = struct{}{}
 			symbols = append(symbols, symbol)
 			continue
 		}
 
-		symbols = append(symbols, strings.ToUpper(strings.TrimSpace(arg)))
+		fallback := strings.ToUpper(strings.TrimSpace(arg))
+		if _, exists := seen[fallback]; exists {
+			continue
+		}
+		seen[fallback] = struct{}{}
+		symbols = append(symbols, fallback)
 	}
 	return symbols
 }

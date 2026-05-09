@@ -45,3 +45,14 @@ func TestLookupBatchQuotesPreservesInputOrderAndPartialResults(t *testing.T) {
 		t.Fatal("expected third result to be MSFT success")
 	}
 }
+
+func TestParseBatchCommandLookupsDeduplicatesNormalizedSymbols(t *testing.T) {
+	got := parseBatchCommandLookups([]string{"aapl", "(AAPL)", "msft!", "MSFT", "vwra.l"})
+
+	if len(got) != 3 {
+		t.Fatalf("expected 3 unique symbols, got %d", len(got))
+	}
+	if got[0] != "AAPL" || got[1] != "MSFT" || got[2] != "VWRA.L" {
+		t.Fatalf("unexpected order/content: %#v", got)
+	}
+}
