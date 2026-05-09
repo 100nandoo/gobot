@@ -17,12 +17,40 @@ A user request for the latest market price and daily change for a single ticker.
 _Avoid_: analysis, watchlist scan
 
 **Exact Ticker Symbol**:
-The Yahoo Finance symbol the user must provide verbatim for a **Quote Lookup** to succeed.
-_Avoid_: company name, fuzzy match
+The canonical Yahoo Finance symbol the **Quote Bot** ultimately uses for a **Quote Lookup**.
+_Avoid_: company name, fuzzy match, raw user input
+
+**Market Shortcut Lookup**:
+A **Quote Lookup** that starts from a bare user-entered token and expands it through deterministic symbol candidates before failing.
+_Avoid_: fuzzy search, company-name lookup, curated one-off alias
+
+**Shortcut Expansion Rule**:
+The ordered expansion rule for a **Market Shortcut Lookup**: try the bare symbol first, then the supported market-specific forms.
+_Avoid_: arbitrary provider search, heuristic matching
+
+**Supported Exchange Suffix**:
+A Yahoo Finance exchange suffix the **Quote Bot** is allowed to append during a **Market Shortcut Lookup**.
+_Avoid_: all exchanges, provider-wide suffix discovery
+
+**Ticker Alias**:
+A fixed user-facing shortcut that resolves directly to one canonical Yahoo Finance symbol before the generic expansion rule runs.
+_Avoid_: fuzzy synonym, provider search term
+
+**Canonical Batch Deduplication**:
+The rule that batch requests collapse repeated inputs after final symbol resolution, not before.
+_Avoid_: raw-input deduplication, duplicate upstream lookup
+
+**Candidate Chain Failure Rule**:
+The rule that a failed **Market Shortcut Lookup** keeps trying later candidates until one succeeds or the candidate list is exhausted.
+_Avoid_: first-failure stop, unsupported-is-terminal
 
 **Lookup Trigger**:
 The user input pattern that the **Quote Bot** treats as a request for a **Quote Lookup**.
 _Avoid_: arbitrary chat text
+
+**Shared Shortcut Expansion**:
+The rule that every **Lookup Trigger** uses the same **Market Shortcut Lookup** behavior instead of command-specific parsing rules.
+_Avoid_: command-only shortcut support, plain-text-only shortcut support
 
 **Ticker Token**:
 An input string containing one **Exact Ticker Symbol**, optionally wrapped with lightweight punctuation in plain-text messages.
@@ -145,14 +173,26 @@ _Avoid_: inconsistent parsing rules across code paths
 - A **Quote Bot** can share market data providers with the **Finance Watchlist Bot**
 - A **Quote Bot** is distinct from a **Finance Watchlist Bot** because it answers ad hoc price lookups rather than saved-watchlist analysis
 - A **Quote Bot** handles one **Quote Lookup** at a time
-- A **Quote Lookup** requires an **Exact Ticker Symbol** in v1
+- A successful **Quote Lookup** resolves to one **Exact Ticker Symbol**
 - A **Lookup Trigger** in v1 can be either a bot command or a plain-text exact ticker symbol
+- A **Quote Lookup** may start as a **Market Shortcut Lookup** instead of a verbatim canonical symbol
+- Every **Lookup Trigger** uses **Shared Shortcut Expansion**
+- A **Ticker Alias** resolves before the **Shortcut Expansion Rule**
+- A **Market Shortcut Lookup** uses the **Shortcut Expansion Rule**
+- The **Shortcut Expansion Rule** tries the bare symbol first, then `^`-prefixed index form, then `.L`, then `.JK`
+- A **Supported Exchange Suffix** in v1 is limited to `.JK` and `.L`
+- `IHSG` is a **Ticker Alias** for `^JKSE`
+- Shortcut expansion runs only for inputs that do not already contain `^` or `.`
+- A **Market Shortcut Lookup** uses the **Candidate Chain Failure Rule**
+- The **Candidate Chain Failure Rule** keeps trying later candidates after an unsupported instrument result
+- Final lookup failure precedence is: provider failure, then unsupported instrument, then invalid symbol
 - A plain-text **Lookup Trigger** can contain one **Ticker Token** with lightweight punctuation, but not mixed prose
 - **Wrapper Punctuation** may be stripped from a **Ticker Token**, but `$` prefixes are not part of the accepted v1 syntax
 - An **Invalid Symbol Response** tells the user to provide an **Exact Ticker Symbol**
 - A **Provider Failure Response** tells the user to retry later without implying the symbol is wrong
 - A successful **Quote Lookup** returns a **Canonical Symbol Reply**
 - A successful **Canonical Symbol Reply** also includes the **Instrument Name**
+- A successful **Canonical Symbol Reply** shows the resolved canonical symbol, not the shortcut input
 - v1 is a **Stateless Quote Bot**
 - The **Quote Bot** uses a **Dedicated Bot Identity**
 - The canonical **Quote Command** in v1 is `/q`
@@ -167,6 +207,7 @@ _Avoid_: inconsistent parsing rules across code paths
 - The **Chat Scope Rule** is: private chats accept commands and plain-text ticker tokens; groups and supergroups accept commands and one **Group Ticker Token**
 - A **Group Ticker Token** must contain exactly one **Ticker Token**
 - A **Group Ticker Token** cannot be mixed prose or plain-text batch input
+- Plain-text group lookup remains single-token only even when shortcut expansion is enabled
 - Non-private **Quote Lookup** replies use a **Quoted Group Reply**
 - Explicit group quote commands still produce a **Public Group Reply**
 - The **Bot Author Filter** ignores bot-authored trigger messages
@@ -176,6 +217,7 @@ _Avoid_: inconsistent parsing rules across code paths
 - A **Batch Quote Request** returns a **Per-Symbol Batch Result**
 - A batch reply preserves **Input Order Reply**
 - A batch request applies **Normalized Batch Deduplication**
+- A batch request also applies **Canonical Batch Deduplication**
 - **Normalized Batch Deduplication** uses the **Lookup Normalization Pipeline**
 
 ## Example dialogue
@@ -187,6 +229,17 @@ _Avoid_: inconsistent parsing rules across code paths
 
 - "new telegram bot" was ambiguous between extending the **Finance Watchlist Bot** and creating a separate **Quote Bot** — resolved: create a separate **Quote Bot**
 - "check stock/etf ticker price" was ambiguous between exact lookup and symbol discovery — resolved: v1 uses **Exact Ticker Symbol** only; fuzzy lookup is deferred
+- "suffixless ticker input" was ambiguous between verbatim-only lookup and deterministic symbol expansion — resolved: v1 supports **Market Shortcut Lookup** through the **Shortcut Expansion Rule**
+- "expansion precedence" was ambiguous when several candidate symbols could be valid — resolved: the **Shortcut Expansion Rule** tries bare symbol, then `^`-prefixed index form, then `.L`, then `.JK`
+- "where shortcut expansion applies" was ambiguous across command and plain-text flows — resolved: use **Shared Shortcut Expansion** for every **Lookup Trigger**
+- "IHSG" was ambiguous between generic expansion and an index-specific shortcut — resolved: `IHSG` is a **Ticker Alias** for `^JKSE`
+- "when shortcut expansion runs" was ambiguous for already-canonical inputs — resolved: skip expansion for inputs that already contain `^` or `.`
+- "how batch duplicates are detected" was ambiguous between raw input and resolved symbol — resolved: use **Canonical Batch Deduplication**
+- "whether unsupported candidates terminate fallback" was ambiguous — resolved: use the **Candidate Chain Failure Rule**
+- "final lookup failure precedence" was ambiguous across candidate outcomes — resolved: prefer provider failure, then unsupported instrument, then invalid symbol
+- "whether reply text should echo the shortcut" was ambiguous — resolved: successful replies use the resolved canonical symbol in the **Canonical Symbol Reply**
+- "whether shortcut support changes group trigger shape" was ambiguous — resolved: plain-text groups still require one **Group Ticker Token**
+- "exchange expansion scope" was ambiguous across Yahoo Finance markets — resolved: **Supported Exchange Suffix** is limited to `.JK` and `.L` in v1
 - "how users ask for a quote" was ambiguous between command and free text — resolved: v1 accepts both bot commands and plain-text exact ticker symbols
 - "plain text" was ambiguous between exact-token-only and mixed text parsing — resolved: v1 accepts one **Ticker Token** with lightweight punctuation, but not mixed prose
 - "lightweight punctuation" was ambiguous about social-symbol syntax — resolved: strip **Wrapper Punctuation**, but reject `$`-prefixed symbols

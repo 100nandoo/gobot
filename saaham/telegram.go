@@ -23,7 +23,7 @@ Fast stock and ETF quote lookup.
 - /help - Show this message
 
 *Notes:*
-- Use exact Yahoo Finance ticker symbols
+- You can use exact Yahoo Finance ticker symbols or supported shortcuts like STI, CSPX, VWRA, BJBR, and IHSG
 - In groups, you can send /q AAPL or a single ticker like AAPL
 - Group replies quote the triggering message
 - SAAHAM Bot is a quote-only bot`
@@ -127,11 +127,14 @@ func quoteCommand(c tele.Context) error {
 	}
 
 	symbols := parseBatchCommandLookups(c.Args())
+	if len(symbols) == 0 {
+		return sendQuoteMessage(c, "Usage: `/q AAPL`")
+	}
 	if len(symbols) > maxBatchSymbols {
 		return sendQuoteMessage(c, "Usage: `/q AAPL MSFT NVDA TSLA AMZN` (up to 5 symbols)")
 	}
 	if len(symbols) == 1 {
-		result, err := quoteService.Lookup(symbols[0])
+		result, err := lookupQuote(quoteService, symbols[0], map[string]cachedLookupResult{})
 		if err != nil {
 			pkg.LogWithTimestamp("SAAHAM quote lookup failed for %s: %v", symbols[0], err)
 			return sendLookupFailure(c, err)
@@ -163,7 +166,7 @@ func plainTextQuoteLookup(c tele.Context) error {
 		return nil
 	}
 
-	result, err := quoteService.Lookup(symbol)
+	result, err := lookupQuote(quoteService, symbol, map[string]cachedLookupResult{})
 	if err != nil {
 		pkg.LogWithTimestamp("SAAHAM plain-text quote lookup failed for %s: %v", symbol, err)
 		return sendLookupFailure(c, err)

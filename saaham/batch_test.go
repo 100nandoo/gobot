@@ -56,3 +56,74 @@ func TestParseBatchCommandLookupsDeduplicatesNormalizedSymbols(t *testing.T) {
 		t.Fatalf("unexpected order/content: %#v", got)
 	}
 }
+
+func TestLookupQuoteUsesShortcutFallbackOrder(t *testing.T) {
+	service := stubQuoteService{
+		results: map[string]*QuoteResult{
+			"CSPX.L": {Symbol: "CSPX.L", InstrumentName: "iShares Core S&P 500 UCITS ETF"},
+		},
+		errors: map[string]error{
+			"CSPX":    &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "CSPX"},
+			"^CSPX":   &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "^CSPX"},
+			"CSPX.JK": &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "CSPX.JK"},
+		},
+	}
+
+	result, err := lookupQuote(service, "CSPX", map[string]cachedLookupResult{})
+	if err != nil {
+		t.Fatalf("expected fallback success, got %v", err)
+	}
+	if result == nil || result.Symbol != "CSPX.L" {
+		t.Fatalf("expected CSPX.L result, got %#v", result)
+	}
+}
+
+func TestLookupQuotePrefersProviderFailureOverUnsupportedAndInvalid(t *testing.T) {
+	service := stubQuoteService{
+		errors: map[string]error{
+			"STI":    &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "STI"},
+			"^STI":   &LookupError{Kind: LookupErrorUnsupported, Symbol: "^STI"},
+			"STI.L":  &LookupError{Kind: LookupErrorProviderFailed, Symbol: "STI.L"},
+			"STI.JK": &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "STI.JK"},
+		},
+	}
+
+	_, err := lookupQuote(service, "STI", map[string]cachedLookupResult{})
+	var lookupErr *LookupError
+	if !errors.As(err, &lookupErr) {
+		t.Fatalf("expected lookup error, got %v", err)
+	}
+	if lookupErr.Kind != LookupErrorProviderFailed || lookupErr.Symbol != "STI.L" {
+		t.Fatalf("expected STI.L provider failure, got %#v", lookupErr)
+	}
+}
+
+func TestLookupBatchQuotesDeduplicatesResolvedCanonicalSymbols(t *testing.T) {
+	service := stubQuoteService{
+		results: map[string]*QuoteResult{
+			"^STI":   {Symbol: "^STI", InstrumentName: "STI Index"},
+			"CSPX.L": {Symbol: "CSPX.L", InstrumentName: "iShares Core S&P 500 UCITS ETF"},
+			"^JKSE":  {Symbol: "^JKSE", InstrumentName: "Jakarta Composite Index"},
+		},
+		errors: map[string]error{
+			"STI":     &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "STI"},
+			"CSPX":    &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "CSPX"},
+			"^CSPX":   &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "^CSPX"},
+			"CSPX.JK": &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "CSPX.JK"},
+		},
+	}
+
+	results := lookupBatchQuotes(service, []string{"sti", "^sti", "cspx", "cspx.l", "ihsg"})
+	if len(results) != 3 {
+		t.Fatalf("expected 3 canonical results, got %d", len(results))
+	}
+	if results[0].Result == nil || results[0].Result.Symbol != "^STI" {
+		t.Fatalf("expected first result to resolve to ^STI, got %#v", results[0])
+	}
+	if results[1].Result == nil || results[1].Result.Symbol != "CSPX.L" {
+		t.Fatalf("expected second result to resolve to CSPX.L, got %#v", results[1])
+	}
+	if results[2].Result == nil || results[2].Result.Symbol != "^JKSE" {
+		t.Fatalf("expected third result to resolve to ^JKSE, got %#v", results[2])
+	}
+}

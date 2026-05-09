@@ -16,7 +16,12 @@ const (
 	LookupErrorProviderFailed LookupErrorKind = "provider_failure"
 )
 
-var tickerTokenPattern = regexp.MustCompile(`^[A-Z0-9][A-Z0-9.\-=]*$`)
+var (
+	tickerTokenPattern = regexp.MustCompile(`^\^?[A-Z0-9][A-Z0-9.\-=]*$`)
+	tickerAliases      = map[string]string{
+		"IHSG": "^JKSE",
+	}
+)
 
 type LookupError struct {
 	Kind   LookupErrorKind
@@ -72,6 +77,37 @@ func parseCommandLookup(args []string) (string, error) {
 
 func parsePlainTextLookup(text string) (string, bool) {
 	return normalizeTickerToken(text)
+}
+
+func resolveTickerCandidates(symbol string) []string {
+	symbol = strings.ToUpper(strings.TrimSpace(symbol))
+
+	if alias, ok := tickerAliases[symbol]; ok {
+		return []string{alias}
+	}
+	if strings.Contains(symbol, "^") || strings.Contains(symbol, ".") {
+		return []string{symbol}
+	}
+
+	return []string{
+		symbol,
+		"^" + symbol,
+		symbol + ".L",
+		symbol + ".JK",
+	}
+}
+
+func dedupeBatchKey(symbol string, result *QuoteResult, err error) string {
+	if result != nil {
+		return result.Symbol
+	}
+
+	var lookupErr *LookupError
+	if errors.As(err, &lookupErr) && lookupErr.Symbol != "" {
+		return lookupErr.Symbol
+	}
+
+	return symbol
 }
 
 func classifyLookupError(symbol string, err error) error {
