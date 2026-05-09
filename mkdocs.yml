@@ -1,4 +1,7 @@
 site_name: Gobot
+exclude_docs: |
+  adr/
+  agents/
 theme:
   font:
     text: 'Roboto'
