@@ -53,3 +53,7 @@ Common keys used across the repo include:
 - `SPOTIFY_ID`
 - `SPOTIFY_SECRET`
 - `YOUTUBE_TOKEN`
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=100nandoo/gobot&type=Date)](https://www.star-history.com/#100nandoo/gobot&Date)
