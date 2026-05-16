@@ -20,6 +20,26 @@ _Avoid_: analysis, watchlist scan
 A **Quote Lookup** for a foreign-exchange pair represented as one base currency and one quote currency.
 _Avoid_: amount conversion, money exchange calculator
 
+**Currency Conversion Request**:
+A user request that applies the latest foreign-exchange rate to a numeric amount, converting one ISO currency code into another.
+_Avoid_: raw pair quote, money transfer, settlement instruction
+
+**Conversion Amount**:
+The numeric input amount the bot multiplies by the resolved FX rate during a **Currency Conversion Request**.
+_Avoid_: quoted price, stored balance
+
+**Conversion Command**:
+The explicit Telegram command that triggers a **Currency Conversion Request**.
+_Avoid_: quote command, generic finance command
+
+**Conversion Reply**:
+The bot response format that shows the converted amount and the provider-backed canonical FX pair used to compute it.
+_Avoid_: pair-only quote reply, settlement confirmation
+
+**Conversion Amount Display Rule**:
+The display rule that decides how many fractional digits a **Conversion Reply** shows for the converted amount based on the quote currency.
+_Avoid_: settlement precision, provider quote precision
+
 **Exact Ticker Symbol**:
 The canonical Yahoo Finance symbol the **Quote Bot** ultimately uses for a **Quote Lookup**.
 _Avoid_: company name, fuzzy match, raw user input
@@ -95,6 +115,10 @@ _Avoid_: shared bot token, shared bot persona
 **Quote Command**:
 The explicit Telegram command that triggers a **Quote Lookup**.
 _Avoid_: generic finance command, stock-only command
+
+**Conversion Trigger**:
+The user input pattern that the **Quote Bot** treats as a request for a **Currency Conversion Request**.
+_Avoid_: arbitrary prose, quote lookup trigger
 
 **Supported Instrument**:
 An asset the **Quote Bot** is willing to quote in v1 based on provider-reported instrument type, including stocks, ETFs, indices, and currency pairs.
@@ -189,6 +213,12 @@ _Avoid_: live constituent lookup, fuzzy US-large-cap guess
 - A **Lookup Trigger** in v1 can be either a bot command or a plain-text exact ticker symbol
 - A **Quote Lookup** may start as a **Market Shortcut Lookup** instead of a verbatim canonical symbol
 - A **Quote Lookup** may also be a **Currency Pair Quote**
+- A **Currency Conversion Request** is distinct from a **Currency Pair Quote**
+- A **Currency Conversion Request** uses one **Conversion Amount**
+- A **Currency Conversion Request** resolves one canonical Yahoo Finance FX pair before applying the rate
+- A **Currency Conversion Request** multiplies the **Conversion Amount** by the latest resolved FX rate
+- A successful **Currency Conversion Request** returns a **Conversion Reply**
+- A **Conversion Reply** applies the **Conversion Amount Display Rule**
 - Every **Lookup Trigger** uses **Shared Shortcut Expansion**
 - A **Ticker Alias** resolves before the **Shortcut Expansion Rule**
 - A **Currency Pair Shortcut** resolves before the **Shortcut Expansion Rule**
@@ -213,6 +243,7 @@ _Avoid_: live constituent lookup, fuzzy US-large-cap guess
 - v1 is a **Stateless Quote Bot**
 - The **Quote Bot** uses a **Dedicated Bot Identity**
 - The canonical **Quote Command** in v1 is `/q`
+- The canonical **Conversion Command** in v1 is `/fx`
 - A **Supported Instrument** in v1 must be reported by the provider as `EQUITY`, `ETF`, `INDEX`, or `CURRENCY`
 - An **Unsupported Instrument Response** explains when a valid symbol is outside the supported instrument scope
 - The **Quote Bot** runs inside the **Shared Gobot Runtime**
@@ -221,9 +252,11 @@ _Avoid_: live constituent lookup, fuzzy US-large-cap guess
 - The **Quote Bot** uses a **Long Polling Runtime**
 - The **Quote Bot** is branded as **SAAHAM Bot**
 - The **Quote Bot** uses a **Branded Code Module**
-- The **Chat Scope Rule** is: private chats accept commands and plain-text ticker tokens; groups and supergroups accept commands and one **Group Ticker Token**
+- The **Chat Scope Rule** is: private chats accept quote commands, conversion commands, plain-text ticker tokens, and plain-text conversion input; groups and supergroups accept commands and one **Group Ticker Token**
 - A **Group Ticker Token** must contain exactly one **Ticker Token**
 - A **Group Ticker Token** cannot be mixed prose or plain-text batch input
+- A private-chat **Conversion Trigger** in v1 can be either explicit command input or plain-text conversion input
+- Groups and supergroups accept **Currency Conversion Request** inputs only through the **Conversion Command**
 - Plain-text group lookup remains single-token only even when shortcut expansion is enabled
 - Non-private **Quote Lookup** replies use a **Quoted Group Reply**
 - Explicit group quote commands still produce a **Public Group Reply**
@@ -231,6 +264,12 @@ _Avoid_: live constituent lookup, fuzzy US-large-cap guess
 - v1 supports a **Batch Quote Request**
 - The **Batch Size Limit** in v1 is 5 symbols per request
 - The **Command Batch Interface** means plain text stays single-symbol only while `/q` accepts batches
+- v1 does not support batch **Currency Conversion Request** inputs
+- A **Conversion Reply** shows both the converted amount and the canonical Yahoo Finance FX pair used for the rate
+- The **Conversion Amount Display Rule** in v1 is: `IDR` shows no fractional digits; other quote currencies show 2 fractional digits
+- v1 **Currency Conversion Request** inputs use ISO currency codes rather than currency names or symbols
+- v1 **Currency Conversion Request** lookup tries the direct FX pair only, not inverse fallback
+- v1 **Currency Conversion Request** rounding is for display only
 - A **Batch Quote Request** returns a **Per-Symbol Batch Result**
 - A batch reply preserves **Input Order Reply**
 - A batch request applies **Normalized Batch Deduplication**
@@ -258,6 +297,13 @@ _Avoid_: live constituent lookup, fuzzy US-large-cap guess
 - "whether shortcut support changes group trigger shape" was ambiguous — resolved: plain-text groups still require one **Group Ticker Token**
 - "exchange expansion scope" was ambiguous across Yahoo Finance markets — resolved: **Supported Exchange Suffix** is limited to `.JK` and `.L` in v1
 - "how users ask for a quote" was ambiguous between command and free text — resolved: v1 accepts both bot commands and plain-text exact ticker symbols
+- "100 SGD to IDR" was ambiguous between a **Currency Pair Quote** and a conversion flow — resolved: it is a **Currency Conversion Request**, distinct from a **Currency Pair Quote**
+- "whether quote and conversion should share one command" was ambiguous — resolved: keep **Quote Command** `/q` separate from **Conversion Command** `/fx`
+- "whether group conversion can be plain text" was ambiguous — resolved: groups and supergroups accept conversion only through the **Conversion Command**
+- "whether private conversion can be plain text" was ambiguous against the earlier command-only rule — resolved: private chats accept plain-text conversion input such as `100 SGD IDR`
+- "whether rupiah should show decimals in conversion output" was ambiguous between amount size and currency-specific display — resolved: use the **Conversion Amount Display Rule**, with `IDR` shown as whole units
+- "how flexible currency inputs should be" was ambiguous between ISO codes and natural-language names — resolved: v1 **Currency Conversion Request** inputs use ISO currency codes only
+- "whether conversion should use inverse fallback" was ambiguous when the direct pair is unavailable — resolved: v1 tries the direct pair only
 - "plain text" was ambiguous between exact-token-only and mixed text parsing — resolved: v1 accepts one **Ticker Token** with lightweight punctuation, but not mixed prose
 - "lightweight punctuation" was ambiguous about social-symbol syntax — resolved: strip **Wrapper Punctuation**, but reject `$`-prefixed symbols
 - "lookup failure" was ambiguous between bad input and upstream outage — resolved: use separate **Invalid Symbol Response** and **Provider Failure Response**

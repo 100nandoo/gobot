@@ -200,3 +200,129 @@ func TestQuoteCommandIgnoresBotAuthoredGroupCommand(t *testing.T) {
 		t.Fatalf("expected no reply activity for ignored command, send=%#v reply=%#v", ctx.sendCalls, ctx.replyCalls)
 	}
 }
+
+func TestConversionCommandIgnoresBotAuthoredGroupCommand(t *testing.T) {
+	originalService := quoteService
+	service := &trackingQuoteService{
+		result: &QuoteResult{Symbol: "SGDIDR=X", InstrumentName: "SGD/IDR", Price: 12000},
+	}
+	quoteService = service
+	t.Cleanup(func() {
+		quoteService = originalService
+	})
+
+	ctx := &fakeContext{
+		chat:   &tele.Chat{Type: tele.ChatGroup},
+		sender: &tele.User{IsBot: true},
+		args:   []string{"100", "SGD", "IDR"},
+	}
+
+	if err := conversionCommand(ctx); err != nil {
+		t.Fatalf("conversionCommand returned error: %v", err)
+	}
+	if len(service.lookups) != 0 {
+		t.Fatalf("expected no lookup for bot-authored conversion command, got %#v", service.lookups)
+	}
+	if len(ctx.sendCalls) != 0 || len(ctx.replyCalls) != 0 {
+		t.Fatalf("expected no reply activity for ignored command, send=%#v reply=%#v", ctx.sendCalls, ctx.replyCalls)
+	}
+}
+
+func TestConversionCommandFormatsReply(t *testing.T) {
+	originalService := quoteService
+	service := &trackingQuoteService{
+		result: &QuoteResult{Symbol: "SGDIDR=X", InstrumentName: "SGD/IDR", Price: 12000},
+	}
+	quoteService = service
+	t.Cleanup(func() {
+		quoteService = originalService
+	})
+
+	ctx := &fakeContext{
+		chat:   &tele.Chat{Type: tele.ChatPrivate},
+		sender: &tele.User{IsBot: false},
+		args:   []string{"100", "SGD", "to", "IDR"},
+	}
+
+	if err := conversionCommand(ctx); err != nil {
+		t.Fatalf("conversionCommand returned error: %v", err)
+	}
+	if len(service.lookups) != 1 || service.lookups[0] != "SGDIDR=X" {
+		t.Fatalf("expected SGDIDR=X lookup, got %#v", service.lookups)
+	}
+	if len(ctx.sendCalls) != 1 {
+		t.Fatalf("expected one conversion reply, got %#v", ctx.sendCalls)
+	}
+	if ctx.sendCalls[0] != "*100.00 SGD = 1,200,000 IDR*\nRate: `SGDIDR=X 12,000.0000`" {
+		t.Fatalf("unexpected conversion reply %q", ctx.sendCalls[0])
+	}
+}
+
+func TestConversionCommandReturnsUsageForInvalidInput(t *testing.T) {
+	ctx := &fakeContext{
+		chat:   &tele.Chat{Type: tele.ChatPrivate},
+		sender: &tele.User{IsBot: false},
+		args:   []string{"hello", "world"},
+	}
+
+	if err := conversionCommand(ctx); err != nil {
+		t.Fatalf("conversionCommand returned error: %v", err)
+	}
+	if len(ctx.sendCalls) != 1 || ctx.sendCalls[0] != conversionUsage {
+		t.Fatalf("expected usage reply, got %#v", ctx.sendCalls)
+	}
+}
+
+func TestPlainTextQuoteLookupSupportsPrivateChatConversion(t *testing.T) {
+	originalService := quoteService
+	service := &trackingQuoteService{
+		result: &QuoteResult{Symbol: "SGDIDR=X", InstrumentName: "SGD/IDR", Price: 12000},
+	}
+	quoteService = service
+	t.Cleanup(func() {
+		quoteService = originalService
+	})
+
+	ctx := &fakeContext{
+		chat:   &tele.Chat{Type: tele.ChatPrivate},
+		sender: &tele.User{IsBot: false},
+		text:   "100 sgd idr",
+	}
+
+	if err := plainTextQuoteLookup(ctx); err != nil {
+		t.Fatalf("plainTextQuoteLookup returned error: %v", err)
+	}
+	if len(service.lookups) != 1 || service.lookups[0] != "SGDIDR=X" {
+		t.Fatalf("expected SGDIDR=X lookup, got %#v", service.lookups)
+	}
+	if len(ctx.sendCalls) != 1 || ctx.sendCalls[0] != "*100.00 SGD = 1,200,000 IDR*\nRate: `SGDIDR=X 12,000.0000`" {
+		t.Fatalf("unexpected private conversion reply %#v", ctx.sendCalls)
+	}
+}
+
+func TestPlainTextQuoteLookupKeepsGroupConversionCommandOnly(t *testing.T) {
+	originalService := quoteService
+	service := &trackingQuoteService{
+		result: &QuoteResult{Symbol: "SGDIDR=X", InstrumentName: "SGD/IDR", Price: 12000},
+	}
+	quoteService = service
+	t.Cleanup(func() {
+		quoteService = originalService
+	})
+
+	ctx := &fakeContext{
+		chat:   &tele.Chat{Type: tele.ChatGroup},
+		sender: &tele.User{IsBot: false},
+		text:   "100 sgd idr",
+	}
+
+	if err := plainTextQuoteLookup(ctx); err != nil {
+		t.Fatalf("plainTextQuoteLookup returned error: %v", err)
+	}
+	if len(service.lookups) != 0 {
+		t.Fatalf("expected no lookup for group plain-text conversion, got %#v", service.lookups)
+	}
+	if len(ctx.sendCalls) != 0 || len(ctx.replyCalls) != 0 {
+		t.Fatalf("expected no group reply activity, send=%#v reply=%#v", ctx.sendCalls, ctx.replyCalls)
+	}
+}

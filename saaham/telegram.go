@@ -20,11 +20,12 @@ Fast stock, ETF, index, and currency pair quote lookup.
 
 *Commands:*
 - /q AAPL - Get the latest quote for one symbol
+- /fx 100 SGD IDR - Convert an amount using the latest FX rate
 - /help - Show this message
 
 *Notes:*
 - You can use exact Yahoo Finance ticker symbols or supported shortcuts like STI, CSPX, VWRA, BJBR, IHSG, and USDSGD
-- In groups, you can send /q AAPL or a single ticker like AAPL
+- In groups, you can send /q AAPL, /fx 100 SGD IDR, or a single ticker like AAPL
 - Group replies quote the triggering message
 - SAAHAM Bot is a quote-only bot`
 
@@ -153,12 +154,45 @@ func quoteCommand(c tele.Context) error {
 	return sendQuoteMessage(c, formatBatchQuoteReply(results))
 }
 
+func conversionCommand(c tele.Context) error {
+	if !allowsCommandLookup(c.Chat()) {
+		return nil
+	}
+	if shouldIgnoreTrigger(c) {
+		return nil
+	}
+
+	request, err := parseConversionCommand(c.Args())
+	if err != nil || request == nil {
+		return sendQuoteMessage(c, conversionUsage)
+	}
+
+	result, convertedAmount, err := lookupConversion(quoteService, request)
+	if err != nil {
+		pkg.LogWithTimestamp("SAAHAM conversion lookup failed for %s: %v", request.PairSymbol(), err)
+		return sendConversionFailure(c, err)
+	}
+
+	return sendQuoteMessage(c, formatConversionReply(request, result, convertedAmount))
+}
+
 func plainTextQuoteLookup(c tele.Context) error {
 	if !allowsPlainTextLookup(c.Chat()) {
 		return nil
 	}
 	if shouldIgnoreTrigger(c) {
 		return nil
+	}
+	if c.Chat() != nil && c.Chat().Type == tele.ChatPrivate {
+		if request, ok := parsePlainTextConversion(c.Text()); ok {
+			result, convertedAmount, err := lookupConversion(quoteService, request)
+			if err != nil {
+				pkg.LogWithTimestamp("SAAHAM plain-text conversion lookup failed for %s: %v", request.PairSymbol(), err)
+				return sendConversionFailure(c, err)
+			}
+
+			return sendQuoteMessage(c, formatConversionReply(request, result, convertedAmount))
+		}
 	}
 
 	symbol, ok := parsePlainTextLookup(c.Text())
@@ -173,6 +207,20 @@ func plainTextQuoteLookup(c tele.Context) error {
 	}
 
 	return sendQuoteMessage(c, formatQuoteReply(result))
+}
+
+func sendConversionFailure(c tele.Context, err error) error {
+	var lookupErr *LookupError
+	if errors.As(err, &lookupErr) {
+		switch lookupErr.Kind {
+		case LookupErrorInvalidSymbol:
+			return sendQuoteMessage(c, "I couldn't find that currency pair for conversion.")
+		case LookupErrorUnsupported:
+			return sendQuoteMessage(c, "That currency pair is valid, but SAAHAM Bot couldn't convert it right now.")
+		}
+	}
+
+	return sendQuoteMessage(c, "Sorry, I couldn't fetch that conversion rate right now.")
 }
 
 func sendLookupFailure(c tele.Context, err error) error {
@@ -210,6 +258,7 @@ func Run() {
 	}
 
 	bot.Handle("/q", quoteCommand)
+	bot.Handle("/fx", conversionCommand)
 	bot.Handle("/help", helpHandler)
 	bot.Handle("/start", helpHandler)
 	bot.Handle(tele.OnText, plainTextQuoteLookup)
