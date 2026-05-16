@@ -16,14 +16,14 @@ import (
 
 const helpMessage = `SAAHAM Bot
 
-Fast stock, ETF, and index quote lookup.
+Fast stock, ETF, index, and currency pair quote lookup.
 
 *Commands:*
 - /q AAPL - Get the latest quote for one symbol
 - /help - Show this message
 
 *Notes:*
-- You can use exact Yahoo Finance ticker symbols or supported shortcuts like STI, CSPX, VWRA, BJBR, and IHSG
+- You can use exact Yahoo Finance ticker symbols or supported shortcuts like STI, CSPX, VWRA, BJBR, IHSG, and USDSGD
 - In groups, you can send /q AAPL or a single ticker like AAPL
 - Group replies quote the triggering message
 - SAAHAM Bot is a quote-only bot`
@@ -182,7 +182,7 @@ func sendLookupFailure(c tele.Context, err error) error {
 		case LookupErrorInvalidSymbol:
 			return sendQuoteMessage(c, "I couldn't find that exact ticker symbol.")
 		case LookupErrorUnsupported:
-			return sendQuoteMessage(c, "That ticker is valid, but SAAHAM Bot currently supports only stocks, ETFs, and indices.")
+			return sendQuoteMessage(c, "That ticker is valid, but SAAHAM Bot currently supports only stocks, ETFs, indices, and currency pairs.")
 		}
 	}
 

@@ -2,17 +2,17 @@
 ![image](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)
 ![image](https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)
 
-SAAHAM Bot is a fast quote bot for Yahoo Finance ticker symbols and supported market shortcuts.
+SAAHAM Bot is a fast quote bot for Yahoo Finance ticker symbols, currency pairs, and supported market shortcuts.
 It is separate from the finance watchlist bot: SAAHAM does ad hoc quote lookups, while `finance` does saved-watchlist analysis.
 
 ## What it does
 
-- Returns the latest quote for one stock, ETF, or index
+- Returns the latest quote for one stock, ETF, index, or currency pair
 - Accepts `/q` command lookups in private chats and groups
 - Accepts plain-text ticker lookups in private chats and groups
 - Supports batch lookups through `/q` for up to `5` symbols
 - Normalizes ticker input and deduplicates repeated symbols in batch requests after canonical symbol resolution
-- Expands supported shortcuts such as `STI -> ^STI`, `JKSE -> ^JKSE`, `IHSG -> ^JKSE`, `VWRA -> VWRA.L`, `CSPX -> CSPX.L`, and `BJBR -> BJBR.JK`
+- Expands supported shortcuts such as `STI -> ^STI`, `JKSE -> ^JKSE`, `IHSG -> ^JKSE`, `VWRA -> VWRA.L`, `CSPX -> CSPX.L`, `BJBR -> BJBR.JK`, and `USDSGD -> USDSGD=X`
 - Uses a checked-in manual S&P 100 snapshot so symbols such as `AAPL` keep bare-symbol-first lookup
 
 ## Commands
@@ -23,17 +23,19 @@ It is separate from the finance watchlist bot: SAAHAM does ad hoc quote lookups,
 | `/help` | Show help |
 | `/q AAPL` | Get the latest quote for one symbol |
 | `/q STI` | Resolve a supported shortcut such as `STI -> ^STI` |
+| `/q USDSGD` | Resolve a currency pair shortcut such as `USDSGD -> USDSGD=X` |
 | `/q AAPL MSFT NVDA` | Get quotes for multiple symbols in one request |
 
 ## Chat behavior
 
-- Private chats accept `/q` and plain-text ticker inputs such as `AAPL`, `STI`, or `CSPX`
+- Private chats accept `/q` and plain-text ticker inputs such as `AAPL`, `STI`, `CSPX`, or `USDSGD`
 - Group chats accept `/q` and a single plain-text ticker input
 - Plain-text mixed prose is ignored
 - `$AAPL` is rejected; use ticker inputs without the `$` prefix
 - Wrapper punctuation such as `(AAPL)` is stripped before lookup
 - Explicit aliases such as `IHSG -> ^JKSE` run before generic suffixless lookup rules
-- Inputs that already contain `^` or `.` skip shortcut expansion
+- Inputs that already contain `^`, `.`, or `=` skip shortcut expansion
+- Six-letter currency pair shortcuts such as `USDSGD` try `USDSGD=X` before other shortcut candidates
 - S&P 100 snapshot members such as `AAPL` try the bare symbol first, then `^SYMBOL`, then `.L`, then `.JK`
 - Other suffixless inputs use shortcut-first lookup order: `^SYMBOL`, then `.L`, then `.JK`, then bare `SYMBOL`
 
@@ -44,6 +46,7 @@ SAAHAM Bot currently supports provider-classified:
 - `EQUITY`
 - `ETF`
 - `INDEX`
+- `CURRENCY`
 
 If the symbol is valid but outside that scope, the bot replies that the instrument is unsupported.
 

@@ -47,7 +47,7 @@ func (s YahooQuoteService) Lookup(symbol string) (*QuoteResult, error) {
 
 func isSupportedInstrumentType(quoteType string) bool {
 	switch strings.ToUpper(strings.TrimSpace(quoteType)) {
-	case "EQUITY", "ETF", "INDEX":
+	case "EQUITY", "ETF", "INDEX", "CURRENCY":
 		return true
 	default:
 		return false

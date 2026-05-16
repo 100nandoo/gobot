@@ -17,8 +17,9 @@ const (
 )
 
 var (
-	tickerTokenPattern = regexp.MustCompile(`^\^?[A-Z0-9][A-Z0-9.\-=]*$`)
-	tickerAliases      = map[string]string{
+	tickerTokenPattern  = regexp.MustCompile(`^\^?[A-Z0-9][A-Z0-9.\-=]*$`)
+	currencyPairPattern = regexp.MustCompile(`^[A-Z]{6}$`)
+	tickerAliases       = map[string]string{
 		"IHSG": "^JKSE",
 	}
 )
@@ -85,8 +86,17 @@ func resolveTickerCandidates(symbol string) []string {
 	if alias, ok := tickerAliases[symbol]; ok {
 		return []string{alias}
 	}
-	if strings.Contains(symbol, "^") || strings.Contains(symbol, ".") {
+	if strings.Contains(symbol, "^") || strings.Contains(symbol, ".") || strings.Contains(symbol, "=") {
 		return []string{symbol}
+	}
+	if currencyPairPattern.MatchString(symbol) {
+		return []string{
+			symbol + "=X",
+			"^" + symbol,
+			symbol + ".L",
+			symbol + ".JK",
+			symbol,
+		}
 	}
 
 	if sp100Snapshot.Contains(symbol) {

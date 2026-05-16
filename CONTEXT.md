@@ -16,6 +16,10 @@ _Avoid_: finance bot, analyzer
 A user request for the latest market price and daily change for a single ticker.
 _Avoid_: analysis, watchlist scan
 
+**Currency Pair Quote**:
+A **Quote Lookup** for a foreign-exchange pair represented as one base currency and one quote currency.
+_Avoid_: amount conversion, money exchange calculator
+
 **Exact Ticker Symbol**:
 The canonical Yahoo Finance symbol the **Quote Bot** ultimately uses for a **Quote Lookup**.
 _Avoid_: company name, fuzzy match, raw user input
@@ -35,6 +39,10 @@ _Avoid_: all exchanges, provider-wide suffix discovery
 **Ticker Alias**:
 A fixed user-facing shortcut that resolves directly to one canonical Yahoo Finance symbol before the generic expansion rule runs.
 _Avoid_: fuzzy synonym, provider search term
+
+**Currency Pair Shortcut**:
+A six-letter user-facing currency pair token that resolves deterministically to a Yahoo Finance `=X` symbol before generic market shortcut expansion.
+_Avoid_: one-off alias, amount conversion command
 
 **Canonical Batch Deduplication**:
 The rule that batch requests collapse repeated inputs after final symbol resolution, not before.
@@ -89,7 +97,7 @@ The explicit Telegram command that triggers a **Quote Lookup**.
 _Avoid_: generic finance command, stock-only command
 
 **Supported Instrument**:
-An asset the **Quote Bot** is willing to quote in v1 based on provider-reported instrument type, including stocks, ETFs, and indices.
+An asset the **Quote Bot** is willing to quote in v1 based on provider-reported instrument type, including stocks, ETFs, indices, and currency pairs.
 _Avoid_: any quoteable symbol, unsupported asset
 
 **Unsupported Instrument Response**:
@@ -180,10 +188,13 @@ _Avoid_: live constituent lookup, fuzzy US-large-cap guess
 - A successful **Quote Lookup** resolves to one **Exact Ticker Symbol**
 - A **Lookup Trigger** in v1 can be either a bot command or a plain-text exact ticker symbol
 - A **Quote Lookup** may start as a **Market Shortcut Lookup** instead of a verbatim canonical symbol
+- A **Quote Lookup** may also be a **Currency Pair Quote**
 - Every **Lookup Trigger** uses **Shared Shortcut Expansion**
 - A **Ticker Alias** resolves before the **Shortcut Expansion Rule**
+- A **Currency Pair Shortcut** resolves before the **Shortcut Expansion Rule**
 - A non-aliased suffixless input in the **S&P 100 Snapshot** tries the bare Yahoo symbol before the **Shortcut Expansion Rule**
 - A **Market Shortcut Lookup** uses the **Shortcut Expansion Rule**
+- A **Currency Pair Shortcut** maps `BASEQUOTE` to `BASEQUOTE=X`
 - The **Shortcut Expansion Rule** tries the `^`-prefixed index form first, then `.L`, then `.JK`, then the bare Yahoo symbol
 - A **Supported Exchange Suffix** in v1 is limited to `.JK` and `.L`
 - `IHSG` is a **Ticker Alias** for `^JKSE`
@@ -202,7 +213,7 @@ _Avoid_: live constituent lookup, fuzzy US-large-cap guess
 - v1 is a **Stateless Quote Bot**
 - The **Quote Bot** uses a **Dedicated Bot Identity**
 - The canonical **Quote Command** in v1 is `/q`
-- A **Supported Instrument** in v1 must be reported by the provider as `EQUITY`, `ETF`, or `INDEX`
+- A **Supported Instrument** in v1 must be reported by the provider as `EQUITY`, `ETF`, `INDEX`, or `CURRENCY`
 - An **Unsupported Instrument Response** explains when a valid symbol is outside the supported instrument scope
 - The **Quote Bot** runs inside the **Shared Gobot Runtime**
 - v1 uses a **Generic Quote Interface**

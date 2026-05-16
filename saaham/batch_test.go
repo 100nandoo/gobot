@@ -77,6 +77,28 @@ func TestLookupQuoteUsesShortcutFallbackOrder(t *testing.T) {
 	}
 }
 
+func TestLookupQuoteUsesCurrencyPairShortcutFirst(t *testing.T) {
+	service := stubQuoteService{
+		results: map[string]*QuoteResult{
+			"USDSGD=X": {Symbol: "USDSGD=X", InstrumentName: "USD/SGD"},
+		},
+		errors: map[string]error{
+			"^USDSGD":   &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "^USDSGD"},
+			"USDSGD.L":  &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "USDSGD.L"},
+			"USDSGD.JK": &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "USDSGD.JK"},
+			"USDSGD":    &LookupError{Kind: LookupErrorInvalidSymbol, Symbol: "USDSGD"},
+		},
+	}
+
+	result, err := lookupQuote(service, "USDSGD", map[string]cachedLookupResult{})
+	if err != nil {
+		t.Fatalf("expected fx shortcut success, got %v", err)
+	}
+	if result == nil || result.Symbol != "USDSGD=X" {
+		t.Fatalf("expected USDSGD=X result, got %#v", result)
+	}
+}
+
 func TestLookupQuoteUsesBareFallbackForNonSP100Symbols(t *testing.T) {
 	service := stubQuoteService{
 		results: map[string]*QuoteResult{
