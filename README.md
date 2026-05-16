@@ -54,6 +54,22 @@ Common keys used across the repo include:
 - `SPOTIFY_SECRET`
 - `YOUTUBE_TOKEN`
 
+## Development
+
+Install the repo-local Air tool once:
+
+```bash
+go get -tool github.com/air-verse/air@latest
+```
+
+Then run the shared Gobot runtime with automatic rebuild and restart on Go file changes:
+
+```bash
+go tool air
+```
+
+Air is configured by [`.air.toml`](./.air.toml) to rebuild [`main.go`](./main.go) into `./tmp/main` and restart that binary when tracked files change.
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=100nandoo/gobot&type=Date)](https://www.star-history.com/#100nandoo/gobot&Date)
