@@ -49,15 +49,22 @@ const (
 
 // FetchTopPosts fetches top posts from a specified subreddit for a given time period and filters posts with score above 100
 func FetchTopPosts(subreddit string, timeFilter TimeFilter, score int) (*RedditResponse, error) {
-	url := fmt.Sprintf("https://old.reddit.com/r/%s/top.json?t=%s", subreddit, timeFilter)
+	url := fmt.Sprintf("https://www.reddit.com/r/%s/top/.json?t=%s", subreddit, timeFilter)
 
-	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
 
-	resp, err := client.Do(req)
+	setBrowserHeaders(req)
+
+	loid, err := getRedditLoidCookie()
+	if err != nil {
+		return nil, fmt.Errorf("error solving reddit challenge: %v", err)
+	}
+	req.AddCookie(&http.Cookie{Name: "loid", Value: loid})
+
+	resp, err := redditHTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %v", err)
 	}
