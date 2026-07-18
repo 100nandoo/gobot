@@ -3,7 +3,7 @@ name: Publish Docker Image on Tag
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - '*'
 
 jobs:
   build-and-push:
@@ -23,6 +23,11 @@ jobs:
         id: vars
         run: |
           TAG="${GITHUB_REF##*/}"  # Get tag from GITHUB_REF
+          if [[ ! "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Unsupported tag format: $TAG"
+            echo "Expected 1.2.3 or v1.2.3"
+            exit 1
+          fi
           echo "tag=${TAG}" >> $GITHUB_ENV
 
       - name: Build Docker image
