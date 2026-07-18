@@ -3,8 +3,10 @@ package reddit
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"net/http"
+	"sort"
 	"strings"
 )
 
@@ -26,8 +28,17 @@ type Post struct {
 	Author        string        `json:"author"`
 	Permalink     string        `json:"permalink"`
 	Created       float64       `json:"created"`
+	GalleryData   GalleryData   `json:"gallery_data"`
 	MediaMetadata MediaMetadata `json:"media_metadata"`
 	Images        []string      // New field to store gallery image URLs
+}
+
+type GalleryData struct {
+	Items []GalleryItem `json:"items"`
+}
+
+type GalleryItem struct {
+	MediaID string `json:"media_id"`
 }
 
 // MediaMetadata represents the media_metadata field in a Reddit post
@@ -100,21 +111,49 @@ func FetchTopPosts(subreddit string, timeFilter TimeFilter, score int) (*RedditR
 	return &redditResp, nil
 }
 
-// ConvertMediaMetadataToURLs converts MediaMetadata to an array of URLs
-func ConvertMediaMetadataToURLs(metadata MediaMetadata) []string {
+// ConvertMediaMetadataToURLs converts gallery metadata into ordered preview URLs.
+func ConvertMediaMetadataToURLs(galleryData GalleryData, metadata MediaMetadata) []string {
 	var urls []string
 
-	// Iterate over each entry in the MediaMetadata
-	for _, data := range metadata {
-		// Extract the file extension from the "m" field (e.g., "image/jpg" -> "jpg")
-		fileExt := strings.Split(data.M, "/")
-		if len(fileExt) != 2 {
-			continue // Skip malformed MIME types
+	appendURL := func(data struct {
+		M string `json:"m"`
+		S struct {
+			U string `json:"u"`
+		} `json:"s"`
+		ID string `json:"id"`
+	}) {
+		if data.S.U != "" {
+			urls = append(urls, html.UnescapeString(data.S.U))
+			return
 		}
 
-		// Construct the URL in the format https://i.redd.it/IDm
+		fileExt := strings.Split(data.M, "/")
+		if len(fileExt) != 2 {
+			return
+		}
 		url := fmt.Sprintf("https://i.redd.it/%s.%s", data.ID, fileExt[1])
 		urls = append(urls, url)
+	}
+
+	if len(galleryData.Items) > 0 {
+		for _, item := range galleryData.Items {
+			data, ok := metadata[item.MediaID]
+			if !ok {
+				continue
+			}
+			appendURL(data)
+		}
+		return urls
+	}
+
+	// Fallback for older payloads without gallery ordering.
+	keys := make([]string, 0, len(metadata))
+	for key := range metadata {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		appendURL(metadata[key])
 	}
 
 	return urls
@@ -136,7 +175,7 @@ func (p *Post) UnmarshalJSON(data []byte) error {
 
 	// Populate Images field based on media_metadata or image URL
 	if p.IsGallery {
-		p.Images = ConvertMediaMetadataToURLs(p.MediaMetadata)
+		p.Images = ConvertMediaMetadataToURLs(p.GalleryData, p.MediaMetadata)
 	} else if p.Image != "" {
 		p.Images = []string{p.Image}
 	}

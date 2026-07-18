@@ -1,9 +1,12 @@
 package reddit
 
 import (
+	"bytes"
 	"fmt"
 	"gobot/config"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -15,6 +18,10 @@ import (
 type TelegramClient struct {
 	bot    *tele.Bot
 	chatID int64
+}
+
+var telegramMediaHTTPClient = &http.Client{
+	Timeout: 30 * time.Second,
 }
 
 func NewTelegramClient() (*TelegramClient, error) {
@@ -57,10 +64,14 @@ func (t *TelegramClient) SendRedditPost(post *Post, isSilent bool) error {
 }
 
 func (t *TelegramClient) sendSingleImage(imageURL, caption string, isSilent bool) error {
-	_, err := t.bot.Send(tele.ChatID(t.chatID), &tele.Photo{
-		File:    tele.FromURL(imageURL),
-		Caption: caption,
-	}, &tele.SendOptions{
+	photo, err := photoFromURL(imageURL)
+	if err != nil {
+		return fmt.Errorf("failed to prepare single image: %w", err)
+	}
+
+	photo.Caption = caption
+
+	_, err = t.bot.Send(tele.ChatID(t.chatID), photo, &tele.SendOptions{
 		ParseMode:           tele.ModeMarkdown,
 		DisableNotification: isSilent,
 	})
@@ -87,9 +98,14 @@ func (t *TelegramClient) sendGallery(images []string, caption string, isSilent b
 				log.Printf("empty image URL found in gallery")
 				continue
 			}
-			album = append(album, &tele.Photo{
-				File: tele.FromURL(imageURL),
-			})
+
+			photo, err := photoFromURL(imageURL)
+			if err != nil {
+				log.Printf("failed to prepare gallery image %q: %v", imageURL, err)
+				continue
+			}
+
+			album = append(album, photo)
 		}
 
 		if len(album) == 0 {
@@ -132,4 +148,34 @@ func (t *TelegramClient) sendAlbumWithRetry(album tele.Album, maxRetries int, ba
 		break
 	}
 	return fmt.Errorf("failed to send gallery images after %d retries: %w", maxRetries, lastErr)
+}
+
+func photoFromURL(imageURL string) (*tele.Photo, error) {
+	req, err := http.NewRequest(http.MethodGet, imageURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("User-Agent", "Mozilla/5.0")
+
+	resp, err := telegramMediaHTTPClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("download image: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("download image: unexpected status code %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read image body: %w", err)
+	}
+	if len(body) == 0 {
+		return nil, fmt.Errorf("read image body: empty response")
+	}
+
+	return &tele.Photo{
+		File: tele.FromReader(bytes.NewReader(body)),
+	}, nil
 }
