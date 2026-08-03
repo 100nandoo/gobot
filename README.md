@@ -9,7 +9,7 @@ Each bot has a distinct user-facing scope, while the process reuses common integ
 - `saaham`: stateless quote bot for exact-symbol stock and ETF lookups
 - `freegames`: scout that posts free Steam and Epic finds to Telegram
 - `spotifytube`: converts between Spotify tracks and YouTube links
-- `antam`: gold price bot for Antam and Pluang pricing
+- `antam`: gold price bot for Antam pricing, digital gold pricing, and a weekly buy-price channel alert
 - `reddit`: Reddit media scout that posts curated content to Telegram
 
 ## Runtime shape
@@ -29,10 +29,25 @@ The entrypoint is [`main.go`](./main.go).
 
 ## Bot docs
 
+- [`docs/antam.md`](./docs/antam.md)
 - [`docs/finance.md`](./docs/finance.md)
 - [`docs/freegames.md`](./docs/freegames.md)
 - [`docs/spotifytube.md`](./docs/spotifytube.md)
 - [`docs/saaham.md`](./docs/saaham.md)
+
+## Antam at a glance
+
+The Antam bot currently exposes:
+
+- `/start`: onboarding and command guide
+- `/a`: Antam price from `hargaemas.com`
+- `/p`: digital gold price from `pluang.com`
+- `/h`: digital gold price from `harga-emas.org`
+
+The weekly Antam channel scout runs on Wednesday at `10:05` Singapore time and sends a buy-only summary from:
+
+- `hargaemas.com`
+- `pluang.com`
 
 ## Configuration
 
