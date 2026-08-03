@@ -15,7 +15,7 @@ func main() {
 	freegames.Scouting(false)
 	freegames.Cleaning(false)
 
-	antam.Scouting(false)
+	antam.Scouting(true)
 
 	reddit.Scouting(false)
 

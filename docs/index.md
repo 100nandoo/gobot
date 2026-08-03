@@ -13,6 +13,8 @@ Each module focuses on a distinct domain, while the repo reuses common integrati
 
 [Free Games on :simple-steam::simple-epicgames:](freegames.md){ .md-button }
 
+[Antam :simple-telegram:](antam.md){ .md-button }
+
 ## Runtime modules in this repo
 
 - `finance`: configurable watchlist analysis and scheduled scout alerts

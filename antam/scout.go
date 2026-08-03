@@ -14,20 +14,27 @@ func Scouting(now bool) {
 	// Helper function to log and send price
 	sendGoldPriceAt := func(hour, minute uint, immediate bool) {
 		execute := func() {
-			// pkg.LogWithTimestamp(fmt.Sprintf("Scouting Antam at %s", timeStr))
-			// price, err := getGoldPrices()
-			// if err != nil {
-			// 	pkg.LogWithTimestamp(fmt.Sprintf("Error fetching gold prices at %s: %v", timeStr, err))
-			// 	return
-			// }
+			var buyPrices []GoldPrice
+
+			priceHargaEmas, errHargaEmas := getHargaEmasComPrices()
+			if errHargaEmas != nil {
+				pkg.LogWithTimestamp("%s", fmt.Sprintf("Error fetching hargaemas.com buy price at %d:%d: %v", hour, minute, errHargaEmas))
+			} else {
+				buyPrices = append(buyPrices, *priceHargaEmas)
+			}
+
 			pricePluang, errPluang := getPluangGoldPrices()
 			if errPluang != nil {
 				pkg.LogWithTimestamp("%s", fmt.Sprintf("Error fetching Pluang gold prices at %d:%d: %v", hour, minute, errPluang))
+			} else {
+				buyPrices = append(buyPrices, *pricePluang)
+			}
+
+			if len(buyPrices) == 0 {
 				return
 			}
-			goldPrices := []GoldPrice{*pricePluang}
 
-			SendPrice(goldPrices...)
+			SendBuyPrice(buyPrices...)
 		}
 
 		if immediate {

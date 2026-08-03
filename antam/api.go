@@ -12,9 +12,11 @@ import (
 
 // GoldPrice represents the sell and buy prices for gold
 type GoldPrice struct {
-	Buy    string
-	Sell   string
-	Source string
+	Buy       string
+	BuyLabel  string
+	Sell      string
+	SellLabel string
+	Source    string
 }
 
 // Get gold prices from the website. It returns a GoldPrice struct.
@@ -51,7 +53,47 @@ func getGoldPrices() (*GoldPrice, error) {
 	return &GoldPrice{
 		Buy:    perGramPrice,
 		Sell:   perGramPrice,
-		Source: "Harga-Emas.org",
+		Source: "Emas Digital - harga-emas.org",
+	}, nil
+}
+
+func getHargaEmasComPrices() (*GoldPrice, error) {
+	resp, err := http.Get("https://hargaemas.com/")
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch page: %w", err)
+	}
+	defer resp.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse HTML: %w", err)
+	}
+
+	table := doc.Find("table.table.table-bordered.table-dark").First()
+	if table.Length() == 0 {
+		return nil, fmt.Errorf("failed to find antam price table in hargaemas.com")
+	}
+
+	dataRow := table.Find("tbody tr").Eq(1)
+	if dataRow.Length() == 0 {
+		return nil, fmt.Errorf("failed to find antam price row in hargaemas.com")
+	}
+
+	cells := dataRow.Find("td")
+	if cells.Length() < 2 {
+		return nil, fmt.Errorf("failed to find both jual and buyback cells in hargaemas.com")
+	}
+
+	sell := strings.TrimSpace(cells.Eq(0).Find("div.price-current").First().Text())
+	buyback := strings.TrimSpace(cells.Eq(1).Find("div.price-current").First().Text())
+	if sell == "" || buyback == "" {
+		return nil, fmt.Errorf("failed to extract jual and buyback prices from hargaemas.com")
+	}
+
+	return &GoldPrice{
+		Buy:    sell,
+		Sell:   buyback,
+		Source: "Emas Antam - hargaemas.com",
 	}, nil
 }
 
@@ -96,7 +138,7 @@ func getPluangGoldPrices() (*GoldPrice, error) {
 	return &GoldPrice{
 		Buy:    formatPriceIDR(payload.Data.Current.Buy),
 		Sell:   formatPriceIDR(payload.Data.Current.Sell),
-		Source: "Pluang.com",
+		Source: "Emas Digital - pluang.com",
 	}, nil
 }
 
