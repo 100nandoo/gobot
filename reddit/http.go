@@ -43,7 +43,7 @@ var redditHTTPClient = &http.Client{
 
 var (
 	redditChallengePattern = regexp.MustCompile(`await\(async \w+\s*=>\s*\w+\s*\+\s*\w+\)\("([^"]+)"\)`)
-	redditTokenPattern     = regexp.MustCompile(`name="token"\s+value="([^"]+)"`)
+	redditTokenPattern     = regexp.MustCompile(`name="jsc_token"\s+value="([^"]+)"`)
 )
 
 var getRedditLoidCookie = func() func() (string, error) {
@@ -111,7 +111,7 @@ func fetchRedditLoidCookie() (string, error) {
 	params := url.Values{
 		"solution":     {challengeStr + challengeStr},
 		"js_challenge": {"1"},
-		"token":        {string(tokenMatches[1])},
+		"jsc_token":    {string(tokenMatches[1])},
 	}
 
 	req, err = http.NewRequest("GET", "https://www.reddit.com/?"+params.Encode(), nil)
